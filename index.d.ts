@@ -1,3 +1,1 @@
-import {CTX} from "./src/ctx";
-
-export default CTX;
+export { CTX } from "./src/ctx";

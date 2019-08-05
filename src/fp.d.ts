@@ -3,7 +3,7 @@ import {FpCommon} from "./fp-common";
 
 export class FP extends FpCommon<FP> {
 
-    public constructor(x: FP | BIG);
+    public constructor(x: FP | BIG | number);
 
     public static logb2(v: number): number;
     public static mod(d: DBIG): BIG;

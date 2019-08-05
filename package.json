@@ -1,8 +1,11 @@
 {
-  "name": "@chainsafe/milagro-crypto-js",
-  "version": "0.1.3",
+  "name": "@futuretense/milagro-crypto-js",
+  "version": "0.0.1",
   "description": "Apache Milagro Crypto JavaScript Library",
   "main": "index.js",
+  "files": [
+    "src"
+  ],
   "directories": {
     "example": "examples",
     "test": "test"
@@ -35,9 +38,9 @@
     "eslint": "latest",
     "istanbul": "latest",
     "mocha": "latest",
+    "mocha-parallel-tests": "latest",
     "mocha-text-cov": "latest",
-    "nyc": "latest",
-    "mocha-parallel-tests": "latest"
+    "nyc": "latest"
   },
   "nyc": {
     "include": [

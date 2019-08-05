@@ -38,7 +38,7 @@ export class BIG {
     public cmove(a: number, b: number): void;
     public copy(y: BIG): BIG;
     public hcopy(y: DBIG): BIG;
-    // public rcopy(y: ROM): BIG;
+    public rcopy(y: number[]): BIG;
     public xortop(x: number): void;
     public ortop(x: number): void;
     public norm(): number;

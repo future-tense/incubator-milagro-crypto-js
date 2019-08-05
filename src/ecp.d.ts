@@ -1,8 +1,13 @@
 import {BIG} from "./big";
 import {ECP2} from "./ecp2";
 import {EcpCommon} from "./ecp-common";
+import {FP} from "./fp";
 
 export class ECP extends EcpCommon<ECP> {
+
+    x: FP;
+    y: FP;
+    z: FP;
 
     public constructor(input?: ECP);
 
