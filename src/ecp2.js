@@ -690,23 +690,17 @@ ECP2.fromBytes = function(b) {
   * @param x x-value
   */
 ECP2.RHS = function(x) {
-    var r, c, b;
+    var r, b;
 
-    //x.norm();
-    r = new FP2(x); //r.copy(x);
+    r = new FP2(x);
     r.sqr();
-
-    c = new BIG(0);
-    c.rcopy(ROM_CURVE.CURVE_B);
-    b = new FP2(c); //b.bseta(c);
-
-    b.div_ip();
-
     r.mul(x);
+
+    b = new FP2(ROM_CURVE.CURVE_B_I);
+    b.div_ip();
     r.add(b);
 
     r.reduce();
-
     return r;
 };
 

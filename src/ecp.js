@@ -396,149 +396,52 @@ ECP.prototype = {
      * @this {ECP}
      */
     dbl: function() {
-        var t0, t1, t2, t3, x3, y3, z3, b;
+        var t0, t1, t2, x3, y3;
 
-        if (ROM_CURVE.CURVE_A === 0) {
-            t0 = new FP(0);
-            t0.copy(this.y);
-            t0.sqr();
-            t1 = new FP(0);
-            t1.copy(this.y);
-            t1.mul(this.z);
-            t2 = new FP(0);
-            t2.copy(this.z);
-            t2.sqr();
+        t0 = new FP(0);
+        t0.copy(this.y);
+        t0.sqr();
+        t1 = new FP(0);
+        t1.copy(this.y);
+        t1.mul(this.z);
+        t2 = new FP(0);
+        t2.copy(this.z);
+        t2.sqr();
 
-            this.z.copy(t0);
-            this.z.add(t0);
-            this.z.norm();
-            this.z.add(this.z);
-            this.z.add(this.z);
-            this.z.norm();
+        this.z.copy(t0);
+        this.z.add(t0);
+        this.z.norm();
+        this.z.add(this.z);
+        this.z.add(this.z);
+        this.z.norm();
 
-            t2.imul(3 * ROM_CURVE.CURVE_B_I);
+        t2.imul(3 * ROM_CURVE.CURVE_B_I);
 
-            x3 = new FP(0);
-            x3.copy(t2);
-            x3.mul(this.z);
-            y3 = new FP(0);
-            y3.copy(t0);
-            y3.add(t2);
-            y3.norm();
-            this.z.mul(t1);
-            t1.copy(t2);
-            t1.add(t2);
-            t2.add(t1);
-            t0.sub(t2);
-            t0.norm();
-            y3.mul(t0);
-            y3.add(x3);
-            t1.copy(this.x);
-            t1.mul(this.y);
-            this.x.copy(t0);
-            this.x.norm();
-            this.x.mul(t1);
-            this.x.add(this.x);
+        x3 = new FP(0);
+        x3.copy(t2);
+        x3.mul(this.z);
+        y3 = new FP(0);
+        y3.copy(t0);
+        y3.add(t2);
+        y3.norm();
+        this.z.mul(t1);
+        t1.copy(t2);
+        t1.add(t2);
+        t2.add(t1);
+        t0.sub(t2);
+        t0.norm();
+        y3.mul(t0);
+        y3.add(x3);
+        t1.copy(this.x);
+        t1.mul(this.y);
+        this.x.copy(t0);
+        this.x.norm();
+        this.x.mul(t1);
+        this.x.add(this.x);
 
-            this.x.norm();
-            this.y.copy(y3);
-            this.y.norm();
-        } else {
-            t0 = new FP(0);
-            t0.copy(this.x);
-            t1 = new FP(0);
-            t1.copy(this.y);
-            t2 = new FP(0);
-            t2.copy(this.z);
-            t3 = new FP(0);
-            t3.copy(this.x);
-            z3 = new FP(0);
-            z3.copy(this.z);
-            y3 = new FP(0);
-            x3 = new FP(0);
-            b = new FP(0);
-
-            if (ROM_CURVE.CURVE_B_I === 0) {
-                b.rcopy(ROM_CURVE.CURVE_B);
-            }
-
-            t0.sqr(); //1    x^2
-            t1.sqr(); //2    y^2
-            t2.sqr(); //3
-
-            t3.mul(this.y); //4
-            t3.add(t3);
-            t3.norm(); //5
-            z3.mul(this.x); //6
-            z3.add(z3);
-            z3.norm(); //7
-            y3.copy(t2);
-
-            if (ROM_CURVE.CURVE_B_I === 0) {
-                y3.mul(b); //8
-            } else {
-                y3.imul(ROM_CURVE.CURVE_B_I);
-            }
-
-            y3.sub(z3); //9  ***
-            x3.copy(y3);
-            x3.add(y3);
-            x3.norm(); //10
-
-            y3.add(x3); //11
-            x3.copy(t1);
-            x3.sub(y3);
-            x3.norm(); //12
-            y3.add(t1);
-            y3.norm(); //13
-            y3.mul(x3); //14
-            x3.mul(t3); //15
-            t3.copy(t2);
-            t3.add(t2);  //16
-            t2.add(t3);  //17
-
-            if (ROM_CURVE.CURVE_B_I === 0) {
-                z3.mul(b); //18
-            } else {
-                z3.imul(ROM_CURVE.CURVE_B_I);
-            }
-
-            z3.sub(t2); //19
-            z3.sub(t0);
-            z3.norm(); //20  ***
-            t3.copy(z3);
-            t3.add(z3); //21
-
-            z3.add(t3);
-            z3.norm(); //22
-            t3.copy(t0);
-            t3.add(t0); //23
-            t0.add(t3); //24
-            t0.sub(t2);
-            t0.norm(); //25
-
-            t0.mul(z3); //26
-            y3.add(t0); //27
-            t0.copy(this.y);
-            t0.mul(this.z); //28
-            t0.add(t0);
-            t0.norm(); //29
-            z3.mul(t0); //30
-            x3.sub(z3); //31
-            t0.add(t0);
-            t0.norm(); //32
-            t1.add(t1);
-            t1.norm(); //33
-            z3.copy(t0);
-            z3.mul(t1); //34
-
-            this.x.copy(x3);
-            this.x.norm();
-            this.y.copy(y3);
-            this.y.norm();
-            this.z.copy(z3);
-            this.z.norm();
-        }
+        this.x.norm();
+        this.y.copy(y3);
+        this.y.norm();
     },
 
     /**
@@ -550,213 +453,88 @@ ECP.prototype = {
     add: function(Q) {
         var b, t0, t1, t2, t3, t4, x3, y3, z3;
 
-        if (ROM_CURVE.CURVE_A === 0) {
+        b = 3 * ROM_CURVE.CURVE_B_I;
+        t0 = new FP(0);
+        t0.copy(this.x);
+        t0.mul(Q.x);
+        t1 = new FP(0);
+        t1.copy(this.y);
+        t1.mul(Q.y);
+        t2 = new FP(0);
+        t2.copy(this.z);
+        t2.mul(Q.z);
+        t3 = new FP(0);
+        t3.copy(this.x);
+        t3.add(this.y);
+        t3.norm();
+        t4 = new FP(0);
+        t4.copy(Q.x);
+        t4.add(Q.y);
+        t4.norm();
+        t3.mul(t4);
+        t4.copy(t0);
+        t4.add(t1);
 
-            b = 3 * ROM_CURVE.CURVE_B_I;
-            t0 = new FP(0);
-            t0.copy(this.x);
-            t0.mul(Q.x);
-            t1 = new FP(0);
-            t1.copy(this.y);
-            t1.mul(Q.y);
-            t2 = new FP(0);
-            t2.copy(this.z);
-            t2.mul(Q.z);
-            t3 = new FP(0);
-            t3.copy(this.x);
-            t3.add(this.y);
-            t3.norm();
-            t4 = new FP(0);
-            t4.copy(Q.x);
-            t4.add(Q.y);
-            t4.norm();
-            t3.mul(t4);
-            t4.copy(t0);
-            t4.add(t1);
+        t3.sub(t4);
+        t3.norm();
+        t4.copy(this.y);
+        t4.add(this.z);
+        t4.norm();
+        x3 = new FP(0);
+        x3.copy(Q.y);
+        x3.add(Q.z);
+        x3.norm();
 
-            t3.sub(t4);
-            t3.norm();
-            t4.copy(this.y);
-            t4.add(this.z);
-            t4.norm();
-            x3 = new FP(0);
-            x3.copy(Q.y);
-            x3.add(Q.z);
-            x3.norm();
+        t4.mul(x3);
+        x3.copy(t1);
+        x3.add(t2);
 
-            t4.mul(x3);
-            x3.copy(t1);
-            x3.add(t2);
+        t4.sub(x3);
+        t4.norm();
+        x3.copy(this.x);
+        x3.add(this.z);
+        x3.norm();
+        y3 = new FP(0);
+        y3.copy(Q.x);
+        y3.add(Q.z);
+        y3.norm();
+        x3.mul(y3);
+        y3.copy(t0);
+        y3.add(t2);
+        y3.rsub(x3);
+        y3.norm();
+        x3.copy(t0);
+        x3.add(t0);
+        t0.add(x3);
+        t0.norm();
+        t2.imul(b);
 
-            t4.sub(x3);
-            t4.norm();
-            x3.copy(this.x);
-            x3.add(this.z);
-            x3.norm();
-            y3 = new FP(0);
-            y3.copy(Q.x);
-            y3.add(Q.z);
-            y3.norm();
-            x3.mul(y3);
-            y3.copy(t0);
-            y3.add(t2);
-            y3.rsub(x3);
-            y3.norm();
-            x3.copy(t0);
-            x3.add(t0);
-            t0.add(x3);
-            t0.norm();
-            t2.imul(b);
+        z3 = new FP(0);
+        z3.copy(t1);
+        z3.add(t2);
+        z3.norm();
+        t1.sub(t2);
+        t1.norm();
+        y3.imul(b);
 
-            z3 = new FP(0);
-            z3.copy(t1);
-            z3.add(t2);
-            z3.norm();
-            t1.sub(t2);
-            t1.norm();
-            y3.imul(b);
+        x3.copy(y3);
+        x3.mul(t4);
+        t2.copy(t3);
+        t2.mul(t1);
+        x3.rsub(t2);
+        y3.mul(t0);
+        t1.mul(z3);
+        y3.add(t1);
+        t0.mul(t3);
+        z3.mul(t4);
+        z3.add(t0);
 
-            x3.copy(y3);
-            x3.mul(t4);
-            t2.copy(t3);
-            t2.mul(t1);
-            x3.rsub(t2);
-            y3.mul(t0);
-            t1.mul(z3);
-            y3.add(t1);
-            t0.mul(t3);
-            z3.mul(t4);
-            z3.add(t0);
-
-            this.x.copy(x3);
-            this.x.norm();
-            this.y.copy(y3);
-            this.y.norm();
-            this.z.copy(z3);
-            this.z.norm();
-        } else {
-            t0 = new FP(0);
-            t0.copy(this.x);
-            t1 = new FP(0);
-            t1.copy(this.y);
-            t2 = new FP(0);
-            t2.copy(this.z);
-            t3 = new FP(0);
-            t3.copy(this.x);
-            t4 = new FP(0);
-            t4.copy(Q.x);
-            z3 = new FP(0);
-            y3 = new FP(0);
-            y3.copy(Q.x);
-            x3 = new FP(0);
-            x3.copy(Q.y);
-            b = new FP(0);
-
-            if (ROM_CURVE.CURVE_B_I === 0) {
-                b.rcopy(ROM_CURVE.CURVE_B);
-            }
-            t0.mul(Q.x); //1
-            t1.mul(Q.y); //2
-            t2.mul(Q.z); //3
-
-            t3.add(this.y);
-            t3.norm(); //4
-            t4.add(Q.y);
-            t4.norm(); //5
-            t3.mul(t4); //6
-            t4.copy(t0);
-            t4.add(t1);  //7
-            t3.sub(t4);
-            t3.norm(); //8
-            t4.copy(this.y);
-            t4.add(this.z);
-            t4.norm(); //9
-            x3.add(Q.z);
-            x3.norm(); //10
-            t4.mul(x3); //11
-            x3.copy(t1);
-            x3.add(t2); //12
-
-            t4.sub(x3);
-            t4.norm(); //13
-            x3.copy(this.x);
-            x3.add(this.z);
-            x3.norm(); //14
-            y3.add(Q.z);
-            y3.norm(); //15
-
-            x3.mul(y3); //16
-            y3.copy(t0);
-            y3.add(t2); //17
-
-            y3.rsub(x3);
-            y3.norm(); //18
-            z3.copy(t2);
-
-            if (ROM_CURVE.CURVE_B_I === 0) {
-                z3.mul(b); //18
-            } else {
-                z3.imul(ROM_CURVE.CURVE_B_I);
-            }
-
-            x3.copy(y3);
-            x3.sub(z3);
-            x3.norm(); //20
-            z3.copy(x3);
-            z3.add(x3);  //21
-
-            x3.add(z3);  //22
-            z3.copy(t1);
-            z3.sub(x3);
-            z3.norm(); //23
-            x3.add(t1);
-            x3.norm(); //24
-
-            if (ROM_CURVE.CURVE_B_I === 0) {
-                y3.mul(b); //18
-            } else {
-                y3.imul(ROM_CURVE.CURVE_B_I);
-            }
-
-            t1.copy(t2);
-            t1.add(t2); //26
-            t2.add(t1); //27
-
-            y3.sub(t2);  //28
-
-            y3.sub(t0);
-            y3.norm(); //29
-            t1.copy(y3);
-            t1.add(y3); //30
-            y3.add(t1);
-            y3.norm(); //31
-
-            t1.copy(t0);
-            t1.add(t0); //32
-            t0.add(t1); //33
-            t0.sub(t2);
-            t0.norm(); //34
-            t1.copy(t4);
-            t1.mul(y3); //35
-            t2.copy(t0);
-            t2.mul(y3); //36
-            y3.copy(x3);
-            y3.mul(z3); //37
-            y3.add(t2); //38
-            x3.mul(t3); //39
-            x3.sub(t1); //40
-            z3.mul(t4); //41
-            t1.copy(t3);
-            t1.mul(t0); //42
-            z3.add(t1);
-
-            this.x.copy(x3);
-            this.x.norm();
-            this.y.copy(y3);
-            this.y.norm();
-            this.z.copy(z3);
-            this.z.norm();
-        }
+        this.x.copy(x3);
+        this.x.norm();
+        this.y.copy(y3);
+        this.y.norm();
+        this.z.copy(z3);
+        this.z.norm();
     },
 
     /* Differential Add for Montgomery curves. this+=Q where W is this-Q and is affine. */
@@ -847,30 +625,6 @@ ECP.prototype = {
 
         return P;
     },
-
-    /**
-     * multiply this by the curves cofactor
-     *
-     * @this {ECP}
-     */
-    cfp: function() {
-        var cf=ROM_CURVE.CURVE_Cof_I,
-            c = new BIG(0);
-        if (cf===1) {
-            return;
-        }
-        if (cf===4) {
-            this.dbl(); this.dbl();
-            return;
-        }
-        if (cf===8) {
-            this.dbl(); this.dbl(); this.dbl();
-            return;
-        }
-        c.rcopy(ROM_CURVE.CURVE_Cof);
-        this.copy(this.mul(c));
-    },
-
 
     /**
      * Multiplies an ECP instance P by a BIG, side-channel resistant
@@ -1135,26 +889,17 @@ ECP.fromBytes = function(b) {
   */
 ECP.RHS = function(x) {
     var r = new FP(0),
-        b, cx;
+        b;
 
     //x.norm();
     r.copy(x);
     r.sqr();
-
-    b = new FP(0);
-    b.rcopy(ROM_CURVE.CURVE_B);
     r.mul(x);
-    if (ROM_CURVE.CURVE_A === -3) {
-        cx = new FP(0);
-        cx.copy(x);
-        cx.imul(3);
-        cx.neg();
-        cx.norm();
-        r.add(cx);
-    }
-    r.add(b);
-    r.reduce();
 
+    b = new FP(ROM_CURVE.CURVE_B_I);
+    r.add(b);
+
+    r.reduce();
     return r;
 };
 
@@ -1175,7 +920,6 @@ ECP.mapit = function(h) {
             }
 
         }
-        P.cfp();
         if (!P.is_infinity()) {
             break;
         }
