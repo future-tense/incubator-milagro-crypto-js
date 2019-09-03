@@ -406,8 +406,7 @@ var PAIR = {
      */
     fexp: function(m) {
         var fa, fb, f, x, r, lv,
-            x0, x1, x2, x3, x4, x5,
-            y0, y1, y2, y3;
+            x0, x1, x2, x3, x4, x5;
 
         fa = new BIG(0);
         fa.rcopy(ROM_FIELD.Fra);
