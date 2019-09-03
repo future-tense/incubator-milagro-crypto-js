@@ -31,9 +31,7 @@ var CTX = {
     "@ST": 0,
     "@SX": 1,
     "@AB": 66,
-    "@HT": 32,
-    "@SH": 10,
-    "@AK": 16
+    "@SH": 10
 };
 
 if (typeof module !== "undefined" && typeof module.exports !== "undefined") {

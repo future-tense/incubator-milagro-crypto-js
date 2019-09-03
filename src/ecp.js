@@ -68,9 +68,6 @@ ECP.SEXTIC_TWIST = ctx["@ST"];
 ECP.SIGN_OF_X = ctx["@SX"];
 ECP.ATE_BITS = ctx["@AB"];
 
-ECP.HASH_TYPE = ctx["@HT"];
-ECP.AESKEY = ctx["@AK"];
-
 ECP.prototype = {
 
     /**
