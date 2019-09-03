@@ -95,5 +95,4 @@ export class DBIG {
     public div(c: BIG): DBIG;
     public split(n: number): BIG;
     public comp(a: DBIG, b: DBIG): number;
-
 }
