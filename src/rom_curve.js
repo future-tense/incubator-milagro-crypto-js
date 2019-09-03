@@ -86,13 +86,6 @@ if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
                 [0xA, 0x0, 0x102000, 0x0, 0x9F8000, 0x7FF, 0x800000, 0xBA344D, 0x1, 0x648240, 0x2523],
                 [0x2, 0x0, 0x4080, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0]
             ]
-        ],
-
-        USE_GLV: true,
-        USE_GS_G2: true,
-        USE_GS_GT: true,
-        GT_STRONG: false,
-
-        //debug: false,
+        ]
     };
 }

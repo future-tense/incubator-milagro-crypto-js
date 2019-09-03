@@ -582,42 +582,38 @@ PAIR.gs = function(e) {
 PAIR.G1mul = function(P, e) {
     var R, Q, q, bcru, cru, t, u, np, nn;
 
-    if (ROM_CURVE.USE_GLV) {
-        R = new ECP();
-        R.copy(P);
-        Q = new ECP();
-        Q.copy(P); Q.affine();
-        q = new BIG(0);
-        q.rcopy(ROM_CURVE.CURVE_Order);
-        bcru = new BIG(0);
-        bcru.rcopy(ROM_CURVE.CURVE_Cru);
-        cru = new FP(bcru);
-        t = new BIG(0);
-        u = PAIR.glv(e);
+    R = new ECP();
+    R.copy(P);
+    Q = new ECP();
+    Q.copy(P); Q.affine();
+    q = new BIG(0);
+    q.rcopy(ROM_CURVE.CURVE_Order);
+    bcru = new BIG(0);
+    bcru.rcopy(ROM_CURVE.CURVE_Cru);
+    cru = new FP(bcru);
+    t = new BIG(0);
+    u = PAIR.glv(e);
 
-        Q.getx().mul(cru);
+    Q.getx().mul(cru);
 
-        np = u[0].nbits();
-        t.copy(BIG.modneg(u[0], q));
-        nn = t.nbits();
-        if (nn < np) {
-            u[0].copy(t);
-            R.neg();
-        }
-
-        np = u[1].nbits();
-        t.copy(BIG.modneg(u[1], q));
-        nn = t.nbits();
-        if (nn < np) {
-            u[1].copy(t);
-            Q.neg();
-        }
-        u[0].norm();
-        u[1].norm();
-        R = R.mul2(u[0], Q, u[1]);
-    } else {
-        R = P.mul(e);
+    np = u[0].nbits();
+    t.copy(BIG.modneg(u[0], q));
+    nn = t.nbits();
+    if (nn < np) {
+        u[0].copy(t);
+        R.neg();
     }
+
+    np = u[1].nbits();
+    t.copy(BIG.modneg(u[1], q));
+    nn = t.nbits();
+    if (nn < np) {
+        u[1].copy(t);
+        Q.neg();
+    }
+    u[0].norm();
+    u[1].norm();
+    R = R.mul2(u[0], Q, u[1]);
 
     return R;
 };
@@ -633,44 +629,40 @@ PAIR.G1mul = function(P, e) {
 PAIR.G2mul = function(P, e) {
     var R, Q, fa, fb, f, q, u, t, i, np, nn;
 
-    if (ROM_CURVE.USE_GS_G2) {
-        Q = [];
-        fa = new BIG(0);
-        fa.rcopy(ROM_FIELD.Fra);
-        fb = new BIG(0);
-        fb.rcopy(ROM_FIELD.Frb);
-        f = new FP2(fa, fb);
+    Q = [];
+    fa = new BIG(0);
+    fa.rcopy(ROM_FIELD.Fra);
+    fb = new BIG(0);
+    fb.rcopy(ROM_FIELD.Frb);
+    f = new FP2(fa, fb);
 
-        q = new BIG(0);
-        q.rcopy(ROM_CURVE.CURVE_Order);
+    q = new BIG(0);
+    q.rcopy(ROM_CURVE.CURVE_Order);
 
-        u = PAIR.gs(e);
-        t = new BIG(0);
-        Q[0] = new ECP2();
-        Q[0].copy(P);
+    u = PAIR.gs(e);
+    t = new BIG(0);
+    Q[0] = new ECP2();
+    Q[0].copy(P);
 
-        for (i = 1; i < 4; i++) {
-            Q[i] = new ECP2();
-            Q[i].copy(Q[i - 1]);
-            Q[i].frob(f);
-        }
-
-        for (i = 0; i < 4; i++) {
-            np = u[i].nbits();
-            t.copy(BIG.modneg(u[i], q));
-            nn = t.nbits();
-
-            if (nn < np) {
-                u[i].copy(t);
-                Q[i].neg();
-            }
-            u[i].norm();
-        }
-
-        R = ECP2.mul4(Q, u);
-    } else {
-        R = P.mul(e);
+    for (i = 1; i < 4; i++) {
+        Q[i] = new ECP2();
+        Q[i].copy(Q[i - 1]);
+        Q[i].frob(f);
     }
+
+    for (i = 0; i < 4; i++) {
+        np = u[i].nbits();
+        t.copy(BIG.modneg(u[i], q));
+        nn = t.nbits();
+
+        if (nn < np) {
+            u[i].copy(t);
+            Q[i].neg();
+        }
+        u[i].norm();
+    }
+
+    R = ECP2.mul4(Q, u);
     return R;
 };
 
@@ -685,43 +677,38 @@ PAIR.G2mul = function(P, e) {
 PAIR.GTpow = function(d, e) {
     var r, g, fa, fb, f, q, t, u, i, np, nn;
 
-    if (ROM_CURVE.USE_GS_GT) {
-        g = [];
-        fa = new BIG(0);
-        fa.rcopy(ROM_FIELD.Fra);
-        fb = new BIG(0);
-        fb.rcopy(ROM_FIELD.Frb);
-        f = new FP2(fa, fb);
-        q = new BIG(0);
-        q.rcopy(ROM_CURVE.CURVE_Order);
-        t = new BIG(0);
-        u = PAIR.gs(e);
+    g = [];
+    fa = new BIG(0);
+    fa.rcopy(ROM_FIELD.Fra);
+    fb = new BIG(0);
+    fb.rcopy(ROM_FIELD.Frb);
+    f = new FP2(fa, fb);
+    q = new BIG(0);
+    q.rcopy(ROM_CURVE.CURVE_Order);
+    t = new BIG(0);
+    u = PAIR.gs(e);
 
-        g[0] = new FP12(d);
+    g[0] = new FP12(d);
 
-        for (i = 1; i < 4; i++) {
-            g[i] = new FP12(0);
-            g[i].copy(g[i - 1]);
-            g[i].frob(f);
-        }
-
-        for (i = 0; i < 4; i++) {
-            np = u[i].nbits();
-            t.copy(BIG.modneg(u[i], q));
-            nn = t.nbits();
-
-            if (nn < np) {
-                u[i].copy(t);
-                g[i].conj();
-            }
-            u[i].norm();
-        }
-
-        r = FP12.pow4(g, u);
-    } else {
-        r = d.pow(e);
+    for (i = 1; i < 4; i++) {
+        g[i] = new FP12(0);
+        g[i].copy(g[i - 1]);
+        g[i].frob(f);
     }
 
+    for (i = 0; i < 4; i++) {
+        np = u[i].nbits();
+        t.copy(BIG.modneg(u[i], q));
+        nn = t.nbits();
+
+        if (nn < np) {
+            u[i].copy(t);
+            g[i].conj();
+        }
+        u[i].norm();
+    }
+
+    r = FP12.pow4(g, u);
     return r;
 };
 
