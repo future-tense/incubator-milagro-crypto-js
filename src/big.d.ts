@@ -1,4 +1,3 @@
-import {RNG} from "./rand";
 
 export class BIG {
 
@@ -18,8 +17,6 @@ export class BIG {
     public static fromBytes(array: ArrayLike<number>): BIG;
     public static smul(a: BIG, b: BIG): BIG;
     public static comp(a: BIG, b: BIG): number;
-    public static random(rng: RNG): BIG;
-    public static randomnum(q: BIG, rng: RNG): BIG;
     public static mul(a:BIG, b: BIG): DBIG;
     public static sqr(a:BIG): DBIG;
     public static monty(m:BIG, nd: number, d: BIG): BIG;

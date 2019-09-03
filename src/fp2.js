@@ -261,10 +261,10 @@ FP2.prototype = {
     },
 
     /**
-     * Multiplication of an FP2 by an FP8
+     * Multiplication of an FP2 by an FP
      *
      * @this {FP2}
-     * @param s FP8 instance
+     * @param s FP instance
      */
     pmul: function(s) {
         this.a.mul(s);

@@ -1,9 +1,10 @@
 import {FpCommon} from "./fp-common";
 import {FP2} from "./fp2";
-import {FP} from "./fp";
-import {FP8} from "./fp8";
 
 export class FP4 extends FpCommon<FP4> {
+
+    a: FP2;
+    b: FP2;
 
     public constructor(c: FP4 | FP2, d: FP4 | FP2);
 
@@ -25,8 +26,6 @@ export class FP4 extends FpCommon<FP4> {
 
     public nconj(): void;
 
-    public pmul(s: FP8): void;
-
     public timesi(): void;
 
     public xtr_A(w: FP4, y: FP4, z: FP4): void;
@@ -38,7 +37,4 @@ export class FP4 extends FpCommon<FP4> {
     public div_i(): void;
 
     public div_2i(): void;
-
-    public qmul(s: FP): void;
-
 }

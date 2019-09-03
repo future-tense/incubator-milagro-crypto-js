@@ -265,10 +265,10 @@ FP4.prototype = {
     },
 
     /**
-     * Multiplication of an FP4 by an FP8
+     * Multiplication of an FP4 by an FP
      *
      * @this {FP4}
-     * @param s FP8 instance
+     * @param s FP instance
      */
     pmul: function(s) {
         this.a.mul(s);
@@ -749,17 +749,6 @@ FP4.prototype = {
         v.add(v); v.norm();
         this.a.copy(v);
         this.b.copy(u);
-    },
-
-    /**
-     * Multiplication of an FP4 by an FP
-     *
-     * @this {FP4}
-     * @param s FP multiplier
-     */				
-    qmul: function(s) {
-        this.a.pmul(s);
-        this.b.pmul(s);
     },
 
     /**
