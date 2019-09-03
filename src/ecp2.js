@@ -652,34 +652,18 @@ ECP2.generator = function() {
   * @param b input byte array
   */
 ECP2.fromBytes = function(b) {
-    var t = [],
-        ra, rb, i, rx, ry, P;
+    var ra, rb, rx, ry, P;
 
-    for (i = 0; i < BIG.MODBYTES; i++) {
-        t[i] = b[i];
-    }
-    ra = BIG.fromBytes(t);
-    for (i = 0; i < BIG.MODBYTES; i++) {
-        t[i] = b[i + BIG.MODBYTES];
-    }
-    rb = BIG.fromBytes(t);
+    ra = BIG.fromBytes(b.slice(0, 32));
+    rb = BIG.fromBytes(b.slice(32, 64));
+    rx = new FP2(ra, rb);
 
-    rx = new FP2(ra, rb); //rx.bset(ra,rb);
-
-    for (i = 0; i < BIG.MODBYTES; i++) {
-        t[i] = b[i + 2 * BIG.MODBYTES];
-    }
-    ra = BIG.fromBytes(t);
-    for (i = 0; i < BIG.MODBYTES; i++) {
-        t[i] = b[i + 3 * BIG.MODBYTES];
-    }
-    rb = BIG.fromBytes(t);
-
-    ry = new FP2(ra, rb); //ry.bset(ra,rb);
+    ra = BIG.fromBytes(b.slice(64, 96));
+    rb = BIG.fromBytes(b.slice(96, 128));
+    ry = new FP2(ra, rb);
 
     P = new ECP2();
     P.setxy(rx, ry);
-
     return P;
 };
 
