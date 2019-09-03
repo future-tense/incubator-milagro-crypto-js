@@ -453,109 +453,53 @@ FP12.prototype = {
      * @param y FP12 instance, the multiplier
      */
     smul: function(y) {
-        if (ECP.SEXTIC_TWIST === ECP.D_TYPE) {
-            var w1=new FP2(this.a.geta());
-            var w2=new FP2(this.a.getb());
-            var w3=new FP2(this.b.geta());
+        var w1=new FP2(this.a.geta());
+        var w2=new FP2(this.a.getb());
+        var w3=new FP2(this.b.geta());
 
-            w1.mul(y.a.geta());
-            w2.mul(y.a.getb());
-            w3.mul(y.b.geta());
+        w1.mul(y.a.geta());
+        w2.mul(y.a.getb());
+        w3.mul(y.b.geta());
 
-            var ta=new FP2(this.a.geta());
-            var tb=new FP2(y.a.geta());
-            ta.add(this.a.getb()); ta.norm();
-            tb.add(y.a.getb()); tb.norm();
-            var tc=new FP2(ta);
-            tc.mul(tb);
-            var t=new FP2(w1);
-            t.add(w2);
-            t.neg();
-            tc.add(t);
+        var ta=new FP2(this.a.geta());
+        var tb=new FP2(y.a.geta());
+        ta.add(this.a.getb()); ta.norm();
+        tb.add(y.a.getb()); tb.norm();
+        var tc=new FP2(ta);
+        tc.mul(tb);
+        var t=new FP2(w1);
+        t.add(w2);
+        t.neg();
+        tc.add(t);
 
-            ta.copy(this.a.geta()); ta.add(this.b.geta()); ta.norm();
-            tb.copy(y.a.geta()); tb.add(y.b.geta()); tb.norm();
-            var td=new FP2(ta);
-            td.mul(tb);
-            t.copy(w1);
-            t.add(w3);
-            t.neg();
-            td.add(t);
+        ta.copy(this.a.geta()); ta.add(this.b.geta()); ta.norm();
+        tb.copy(y.a.geta()); tb.add(y.b.geta()); tb.norm();
+        var td=new FP2(ta);
+        td.mul(tb);
+        t.copy(w1);
+        t.add(w3);
+        t.neg();
+        td.add(t);
 
-            ta.copy(this.a.getb()); ta.add(this.b.geta()); ta.norm();
-            tb.copy(y.a.getb()); tb.add(y.b.geta()); tb.norm();
-            var te=new FP2(ta);
-            te.mul(tb);
-            t.copy(w2);
-            t.add(w3);
-            t.neg();
-            te.add(t);
+        ta.copy(this.a.getb()); ta.add(this.b.geta()); ta.norm();
+        tb.copy(y.a.getb()); tb.add(y.b.geta()); tb.norm();
+        var te=new FP2(ta);
+        te.mul(tb);
+        t.copy(w2);
+        t.add(w3);
+        t.neg();
+        te.add(t);
 
-            w2.mul_ip();
-            w1.add(w2);
+        w2.mul_ip();
+        w1.add(w2);
 
-            this.a.geta().copy(w1); this.a.getb().copy(tc);
-            this.b.geta().copy(td); this.b.getb().copy(te);
-            this.c.geta().copy(w3); this.c.getb().zero();
+        this.a.geta().copy(w1); this.a.getb().copy(tc);
+        this.b.geta().copy(td); this.b.getb().copy(te);
+        this.c.geta().copy(w3); this.c.getb().zero();
 
-            this.a.norm();
-            this.b.norm();
+        this.a.norm();
+        this.b.norm();
 
-        } else {
-            var w1=new FP2(this.a.geta());
-            var w2=new FP2(this.a.getb());
-            var w3=new FP2(this.c.getb());
-
-            w1.mul(y.a.geta());
-            w2.mul(y.a.getb());
-            w3.mul(y.c.getb());
-
-            var ta=new FP2(this.a.geta());
-            var tb=new FP2(y.a.geta());
-            ta.add(this.a.getb()); ta.norm();
-            tb.add(y.a.getb()); tb.norm();
-            var tc=new FP2(ta);
-            tc.mul(tb);
-            var t=new FP2(w1);
-            t.add(w2);
-            t.neg();
-            tc.add(t);
-
-            ta.copy(this.a.geta()); ta.add(this.c.getb()); ta.norm();
-            tb.copy(y.a.geta()); tb.add(y.c.getb()); tb.norm();
-            var td=new FP2(ta);
-            td.mul(tb);
-            t.copy(w1);
-            t.add(w3);
-            t.neg();
-            td.add(t);
-
-            ta.copy(this.a.getb()); ta.add(this.c.getb()); ta.norm();
-            tb.copy(y.a.getb()); tb.add(y.c.getb()); tb.norm();
-            var te=new FP2(ta);
-            te.mul(tb);
-            t.copy(w2);
-            t.add(w3);
-            t.neg();
-            te.add(t);
-
-            w2.mul_ip();
-            w1.add(w2);
-            this.a.geta().copy(w1); this.a.getb().copy(tc);
-
-            w3.mul_ip();
-            w3.norm();
-            this.b.geta().zero(); this.b.getb().copy(w3);
-
-            te.norm();
-            te.mul_ip();
-            this.c.geta().copy(te);
-            this.c.getb().copy(td);
-
-            this.a.norm();
-            this.c.norm();
-
-        }
         this.stype=FP.SPARSE;
     },
 
@@ -584,29 +528,8 @@ FP12.prototype = {
             var z2=new FP4(0);
             var z3=new FP4(0);
             z0.mul(y.a);
-
-            if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-                if (y.stype === FP.SPARSE || this.stype === FP.SPARSE) {
-                    z2.getb().copy(this.b.getb());
-                    z2.getb().mul(y.b.getb());
-                    z2.geta().zero();
-                    if (y.stype !== FP.SPARSE) {
-                        z2.geta().copy(this.b.getb());
-                        z2.geta().mul(y.b.geta());
-                    }
-                    if (this.stype !== FP.SPARSE) {
-                        z2.geta().copy(this.b.geta());
-                        z2.geta().mul(y.b.getb());
-                    }
-                    z2.times_i();
-                } else {
-                    z2.copy(this.b);
-                    z2.mul(y.b);
-                }
-            } else {
-                z2.copy(this.b);
-                z2.mul(y.b);
-            }
+            z2.copy(this.b);
+            z2.mul(y.b);
             var t0=new FP4(this.a);
             var t1=new FP4(y.a);
             t0.add(this.b); t0.norm();
@@ -633,22 +556,17 @@ FP12.prototype = {
             t0.mul(t1);
             z2.add(t0);
 
-            if (ECP.SEXTIC_TWIST === ECP.D_TYPE) {
-                if (y.stype === FP.SPARSE || this.stype === FP.SPARSE) {
-                    t0.geta().copy(this.c.geta());
-                    t0.geta().mul(y.c.geta());
-                    t0.getb().zero();
-                    if (y.stype !== FP.SPARSE) {
-                        t0.getb().copy(this.c.geta());
-                        t0.getb().mul(y.c.getb());
-                    }
-                    if (this.stype !== FP.SPARSE) {
-                        t0.getb().copy(this.c.getb());
-                        t0.getb().mul(y.c.geta());
-                    }
-                } else {
-                    t0.copy(this.c);
-                    t0.mul(y.c);
+            if (y.stype === FP.SPARSE || this.stype === FP.SPARSE) {
+                t0.geta().copy(this.c.geta());
+                t0.geta().mul(y.c.geta());
+                t0.getb().zero();
+                if (y.stype !== FP.SPARSE) {
+                    t0.getb().copy(this.c.geta());
+                    t0.getb().mul(y.c.getb());
+                }
+                if (this.stype !== FP.SPARSE) {
+                    t0.getb().copy(this.c.getb());
+                    t0.getb().mul(y.c.geta());
                 }
             } else {
                 t0.copy(this.c);
@@ -669,87 +587,42 @@ FP12.prototype = {
                 return;
             }
 
-            if (ECP.SEXTIC_TWIST === ECP.D_TYPE) {
-                // dense by sparser - 13m
-                var z0=new FP4(this.a);
-                var z2=new FP4(this.b);
-                var z3=new FP4(this.b);
-                var t0=new FP4(0);
-                var t1=new FP4(y.a);
-                z0.mul(y.a);
-                z2.pmul(y.b.real());
-                this.b.add(this.a);
-                t1.real().add(y.b.real());
+            // dense by sparser - 13m
+            var z0=new FP4(this.a);
+            var z2=new FP4(this.b);
+            var z3=new FP4(this.b);
+            var t0=new FP4(0);
+            var t1=new FP4(y.a);
+            z0.mul(y.a);
+            z2.pmul(y.b.real());
+            this.b.add(this.a);
+            t1.real().add(y.b.real());
 
-                t1.norm();
-                this.b.norm();
-                this.b.mul(t1);
-                z3.add(this.c);
-                z3.norm();
-                z3.pmul(y.b.real());
+            t1.norm();
+            this.b.norm();
+            this.b.mul(t1);
+            z3.add(this.c);
+            z3.norm();
+            z3.pmul(y.b.real());
 
-                t0.copy(z0); t0.neg();
-                t1.copy(z2); t1.neg();
+            t0.copy(z0); t0.neg();
+            t1.copy(z2); t1.neg();
 
-                this.b.add(t0);
+            this.b.add(t0);
 
-                this.b.add(t1);
-                z3.add(t1);
-                z2.add(t0);
+            this.b.add(t1);
+            z3.add(t1);
+            z2.add(t0);
 
-                t0.copy(this.a); t0.add(this.c); t0.norm();
-                z3.norm();
-                t0.mul(y.a);
-                this.c.copy(z2); this.c.add(t0);
+            t0.copy(this.a); t0.add(this.c); t0.norm();
+            z3.norm();
+            t0.mul(y.a);
+            this.c.copy(z2); this.c.add(t0);
 
-                z3.times_i();
-                this.a.copy(z0); this.a.add(z3);
-            }
-
-            if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-                var z0=new FP4(this.a);
-                var z1=new FP4(0);
-                var z2=new FP4(0);
-                var z3=new FP4(0);
-                var t0=new FP4(this.a);
-                var t1=new FP4(0);
-    
-                z0.mul(y.a);
-                t0.add(this.b); t0.norm();
-
-                z1.copy(t0); z1.mul(y.a);
-                t0.copy(this.b); t0.add(this.c);
-                t0.norm();
-
-                z3.copy(t0); 
-                z3.pmul(y.c.getb());
-                z3.times_i();
-
-                t0.copy(z0); t0.neg();
-                z1.add(t0);
-                this.b.copy(z1); 
-                z2.copy(t0);
-
-                t0.copy(this.a); t0.add(this.c); t0.norm();
-                t1.copy(y.a); t1.add(y.c); t1.norm();
-
-                t0.mul(t1);
-                z2.add(t0);
-                t0.copy(this.c); 
-        
-                t0.pmul(y.c.getb());
-                t0.times_i();
-                t1.copy(t0); t1.neg();
-
-                this.c.copy(z2); this.c.add(t1);
-                z3.add(t1);
-                t0.times_i();
-                this.b.add(t0);
-                z3.norm();
-                z3.times_i();
-                this.a.copy(z0); this.a.add(z3);
-            }	
+            z3.times_i();
+            this.a.copy(z0); this.a.add(z3);
         }
+
         this.stype=FP.DENSE;
         this.norm();
     },

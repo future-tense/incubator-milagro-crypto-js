@@ -20,7 +20,6 @@
 /* Finite Field arithmetic */
 /* AMCL mod p functions */
 
-var ctx = require("./ctx");
 var BIG = require("./big").BIG;
 var DBIG = require("./big").DBIG;
 var ROM_FIELD = require("./rom_field");
@@ -47,22 +46,15 @@ var FP = function(x) {
     }
 };
 
-FP.NOT_SPECIAL = 0;
-FP.PSEUDO_MERSENNE = 1;
-FP.GENERALISED_MERSENNE = 2;
-FP.MONTGOMERY_FRIENDLY = 3;
-
 FP.ZERO = 0;
 FP.ONE = 1;
 FP.SPARSER = 2;
 FP.SPARSE = 3;
 FP.DENSE= 4;
 
-FP.MODBITS = ctx["@NBT"];
-FP.MOD8 = ctx["@M8"];
-FP.MODTYPE = ctx["@MT"];
+FP.MODBITS = 254;
 
-FP.FEXCESS = ((1 << ctx["@SH"])-1); // 2^(BASEBITS*NLEN-MODBITS)-1
+FP.FEXCESS = ((1 << 10) - 1); // 2^(BASEBITS*NLEN-MODBITS)-1
 FP.OMASK = (-1) << FP.TBITS;
 FP.TBITS = FP.MODBITS % BIG.BASEBITS;
 FP.TMASK = (1 << FP.TBITS) - 1;
@@ -83,7 +75,7 @@ FP.prototype = {
      * copy from a BIG in ROM
      *
      * @this {FP}
-     * @param x FP instance to be copied
+     * @param y FP instance to be copied
      */
     rcopy: function(y) {
         this.f.rcopy(y);
@@ -94,7 +86,7 @@ FP.prototype = {
      * copy from another BIG
      *
      * @this {FP}
-     * @param x FP instance to be copied
+     * @param y FP instance to be copied
      */
     bcopy: function(y) {
         this.f.copy(y);
@@ -105,7 +97,7 @@ FP.prototype = {
      * Copy FP to another FP
      *
      * @this {FP}
-     * @param x FP instance to be copied
+     * @param y FP instance to be copied
      */
     copy: function(y) {
         this.XES = y.XES;
@@ -132,7 +124,7 @@ FP.prototype = {
      * Conditional copy of FP number
      *
      * @this {FP}
-     * @param g FP instance
+     * @param b FP instance
      * @param d copy depends on this value
      */
     cmove: function(b, d) {
@@ -152,16 +144,12 @@ FP.prototype = {
     nres: function() {
         var r, d;
 
-        if (FP.MODTYPE !== FP.PSEUDO_MERSENNE && FP.MODTYPE !== FP.GENERALISED_MERSENNE) {
-            r = new BIG();
-            r.rcopy(ROM_FIELD.R2modp);
+        r = new BIG();
+        r.rcopy(ROM_FIELD.R2modp);
 
-            d = BIG.mul(this.f, r);
-            this.f.copy(FP.mod(d));
-            this.XES = 2;
-        } else {
-            this.XES = 1;
-        }
+        d = BIG.mul(this.f, r);
+        this.f.copy(FP.mod(d));
+        this.XES = 2;
 
         return this;
     },
@@ -177,13 +165,10 @@ FP.prototype = {
 
         r.copy(this.f);
 
-        if (FP.MODTYPE !== FP.PSEUDO_MERSENNE && FP.MODTYPE !== FP.GENERALISED_MERSENNE) {
-            d = new DBIG(0);
-            d.hcopy(this.f);
-            w = FP.mod(d);
-            r.copy(w);
-        }
-
+        d = new DBIG(0);
+        d.hcopy(this.f);
+        w = FP.mod(d);
+        r.copy(w);
         return r;
     },
 
@@ -303,18 +288,12 @@ FP.prototype = {
             s = true;
         }
 
-        if (FP.MODTYPE === FP.PSEUDO_MERSENNE || FP.MODTYPE === FP.GENERALISED_MERSENNE) {
-            d = this.f.pxmul(c);
-            this.f.copy(FP.mod(d));
-            this.XES = 2;
+        if (this.XES * c <= FP.FEXCESS) {
+            this.f.pmul(c);
+            this.XES *= c;
         } else {
-            if (this.XES * c <= FP.FEXCESS) {
-                this.f.pmul(c);
-                this.XES *= c;
-            } else {
-                n = new FP(c);
-                this.mul(n);
-            }
+            n = new FP(c);
+            this.mul(n);
         }
 
         if (s) {
@@ -457,16 +436,8 @@ FP.prototype = {
 
 
         n=FP.MODBITS;
-        if (FP.MODTYPE === FP.GENERALISED_MERSENNE) {   // Goldilocks ONLY
-            n/=2;
-        }
-        if (FP.MOD8 === 5) {
-            n-=3;
-            c=(ROM_FIELD.MConst+5)/8;
-        } else {
-            n-=2;
-            c=(ROM_FIELD.MConst+3)/4;
-        }
+        n-=2;
+        c=(ROM_FIELD.MConst+3)/4;
 
         bw=0; w=1;
         while (w<c) {
@@ -535,15 +506,6 @@ FP.prototype = {
             r.mul(key);
         }
 
-        if (FP.MODTYPE === FP.GENERALISED_MERSENNE) {   // Goldilocks ONLY
-            key.copy(r);
-            r.sqr();
-            r.mul(this);
-            for (i=0;i<n+1;i++) {
-                r.sqr();
-            }
-            r.mul(key);
-        }
         return r;
     },
 
@@ -554,26 +516,11 @@ FP.prototype = {
      */
     inverse: function() {
 
-        if (FP.MODTYPE === FP.PSEUDO_MERSENNE || FP.MODTYPE === FP.GENERALISED_MERSENNE) {
-            var y=this.fpow();
-            if (FP.MOD8 === 5) {
-                var t=new FP(this);
-                t.sqr();
-                this.mul(t);
-                y.sqr();
-
-            }
-            y.sqr();
-            y.sqr();
-            this.mul(y);
-            return this;
-        } else {
-            var m2=new BIG(0);
-            m2.rcopy(ROM_FIELD.Modulus);
-            m2.dec(2); m2.norm();
-            this.copy(this.pow(m2));
-            return this;
-        }
+        var m2=new BIG(0);
+        m2.rcopy(ROM_FIELD.Modulus);
+        m2.dec(2); m2.norm();
+        this.copy(this.pow(m2));
+        return this;
     },
 
     /**
@@ -655,47 +602,13 @@ FP.prototype = {
      * @this {FP}
      */
     sqrt: function() {
-        var i, v, r;
-
         this.reduce();
-        if (FP.MOD8 === 5) {
-            i = new FP(0);
-            i.copy(this);
-            i.f.shl(1);
-            if (FP.MODTYPE === FP.PSEUDO_MERSENNE || FP.MODTYPE === FP.GENERALISED_MERSENNE) {
-                v=i.fpow();
-            } else {
-                var b = new BIG(0);
-                b.rcopy(ROM_FIELD.Modulus);
-                b.dec(5);
-                b.norm();
-                b.shr(3);
-                v = i.pow(b);
-            }
-            i.mul(v);
-            i.mul(v);
-            i.f.dec(1);
-            r = new FP(0);
-            r.copy(this);
-            r.mul(v);
-            r.mul(i);
-            r.reduce();
-
-            return r;
-        } else {
-            if (FP.MODTYPE === FP.PSEUDO_MERSENNE || FP.MODTYPE === FP.GENERALISED_MERSENNE) {
-                var r=this.fpow();
-                r.mul(this);
-                return r;
-            } else {
-                var b = new BIG(0);
-                b.rcopy(ROM_FIELD.Modulus);
-                b.inc(1);
-                b.norm();
-                b.shr(2);
-                return this.pow(b);
-            }
-        }
+        var b = new BIG(0);
+        b.rcopy(ROM_FIELD.Modulus);
+        b.inc(1);
+        b.norm();
+        b.shr(2);
+        return this.pow(b);
     }
 };
 
@@ -737,72 +650,10 @@ FP.mod = function(d) {
     var b = new BIG(0),
         i, t, v, tw, tt, lo, carry, m, dd;
 
-    if (FP.MODTYPE === FP.PSEUDO_MERSENNE) {
-        t = d.split(FP.MODBITS);
-        b.hcopy(d);
+    m = new BIG(0);
+    m.rcopy(ROM_FIELD.Modulus);
 
-        if (ROM_FIELD.MConst !== 1) {
-            v = t.pmul(ROM_FIELD.MConst);
-        } else {
-            v = 0;
-        }
-
-        t.add(b);
-        t.norm();
-
-        tw = t.w[BIG.NLEN - 1];
-        t.w[BIG.NLEN - 1] &= FP.TMASK;
-        t.inc(ROM_FIELD.MConst * ((tw >> FP.TBITS) + (v << (BIG.BASEBITS - FP.TBITS))));
-        //      b.add(t);
-        t.norm();
-
-        return t;
-    }
-
-    if (FP.MODTYPE === FP.MONTGOMERY_FRIENDLY) {
-        for (i = 0; i < BIG.NLEN; i++) {
-            d.w[BIG.NLEN + i] += d.muladd(d.w[i], ROM_FIELD.MConst - 1, d.w[i], BIG.NLEN + i - 1);
-        }
-
-        for (i = 0; i < BIG.NLEN; i++) {
-            b.w[i] = d.w[BIG.NLEN + i];
-        }
-
-        b.norm();
-    }
-
-    if (FP.MODTYPE === FP.GENERALISED_MERSENNE) { // GoldiLocks Only
-        t = d.split(FP.MODBITS);
-        b.hcopy(d);
-        b.add(t);
-        dd = new DBIG(0);
-        dd.hcopy(t);
-        dd.shl(FP.MODBITS / 2);
-
-        tt = dd.split(FP.MODBITS);
-        lo = new BIG();
-        lo.hcopy(dd);
-
-        b.add(tt);
-        b.add(lo);
-        //b.norm();
-        tt.shl(FP.MODBITS / 2);
-        b.add(tt);
-
-        carry = b.w[BIG.NLEN - 1] >> FP.TBITS;
-        b.w[BIG.NLEN - 1] &= FP.TMASK;
-        b.w[0] += carry;
-
-        b.w[Math.floor(224 / BIG.BASEBITS)] += carry << (224 % BIG.BASEBITS);
-        b.norm();
-    }
-
-    if (FP.MODTYPE === FP.NOT_SPECIAL) {
-        m = new BIG(0);
-        m.rcopy(ROM_FIELD.Modulus);
-
-        b.copy(BIG.monty(m, ROM_FIELD.MConst, d));
-    }
+    b.copy(BIG.monty(m, ROM_FIELD.MConst, d));
 
     return b;
 };

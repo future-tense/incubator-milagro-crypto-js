@@ -19,8 +19,6 @@
 
 "use strict";
 
-var ctx = require("./ctx");
-
 /* AMCL BIG number class */
 
 /**
@@ -48,8 +46,8 @@ var BIG = function(x) {
 };
 
 BIG.CHUNK = 32;
-BIG.MODBYTES = ctx["@NB"];
-BIG.BASEBITS = ctx["@BASE"];
+BIG.MODBYTES = 32;
+BIG.BASEBITS = 24;
 BIG.NLEN = (1 + (Math.floor((8 * BIG.MODBYTES - 1) / BIG.BASEBITS)));
 BIG.DNLEN = 2 * BIG.NLEN;
 BIG.BMASK = (1 << BIG.BASEBITS) - 1;

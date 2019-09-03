@@ -372,17 +372,13 @@ ECP2.prototype = {
 
         iy = new FP2(0);
         iy.copy(this.y);
-        if (ECP.SEXTIC_TWIST === ECP.D_TYPE) {
-            iy.mul_ip();
-            iy.norm();
-        }
+        iy.mul_ip();
+        iy.norm();
 
         t0 = new FP2(0);
         t0.copy(this.y);
         t0.sqr();
-        if (ECP.SEXTIC_TWIST === ECP.D_TYPE) {
-            t0.mul_ip();
-        }
+        t0.mul_ip();
         t1 = new FP2(0);
         t1.copy(iy);
         t1.mul(this.z);
@@ -398,10 +394,6 @@ ECP2.prototype = {
         this.z.norm();
 
         t2.imul(3 * ROM_CURVE.CURVE_B_I);
-        if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-            t2.mul_ip();
-            t2.norm();
-        }
 
         x3 = new FP2(0);
         x3.copy(t2);
@@ -469,10 +461,8 @@ ECP2.prototype = {
 
         t3.sub(t4);
         t3.norm();
-        if (ECP.SEXTIC_TWIST === ECP.D_TYPE) {
-            t3.mul_ip();
-            t3.norm(); //t3=(X1+Y1)(X2+Y2)-(X1.X2+Y1.Y2) = X1.Y2+X2.Y1
-        }
+        t3.mul_ip();
+        t3.norm(); //t3=(X1+Y1)(X2+Y2)-(X1.X2+Y1.Y2) = X1.Y2+X2.Y1
 
         t4.copy(this.y);
         t4.add(this.z);
@@ -488,10 +478,8 @@ ECP2.prototype = {
 
         t4.sub(x3);
         t4.norm();
-        if (ECP.SEXTIC_TWIST === ECP.D_TYPE) {
-            t4.mul_ip();
-            t4.norm(); //t4=(Y1+Z1)(Y2+Z2) - (Y1.Y2+Z1.Z2) = Y1.Z2+Y2.Z1
-        }
+        t4.mul_ip();
+        t4.norm(); //t4=(Y1+Z1)(Y2+Z2) - (Y1.Y2+Z1.Z2) = Y1.Z2+Y2.Z1
 
         x3.copy(this.x);
         x3.add(this.z);
@@ -506,21 +494,16 @@ ECP2.prototype = {
         y3.rsub(x3);
         y3.norm(); // y3=(X1+Z1)(X2+Z2) - (X1.X2+Z1.Z2) = X1.Z2+X2.Z1
 
-        if (ECP.SEXTIC_TWIST === ECP.D_TYPE) {
-            t0.mul_ip();
-            t0.norm(); // x.Q.x
-            t1.mul_ip();
-            t1.norm(); // y.Q.y
-        }
+        t0.mul_ip();
+        t0.norm(); // x.Q.x
+        t1.mul_ip();
+        t1.norm(); // y.Q.y
 
         x3.copy(t0);
         x3.add(t0);
         t0.add(x3);
         t0.norm();
         t2.imul(b);
-        if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-            t2.mul_ip(); t2.norm();
-        }
 
         z3 = new FP2(0);
         z3.copy(t1);
@@ -529,10 +512,6 @@ ECP2.prototype = {
         t1.sub(t2);
         t1.norm();
         y3.imul(b);
-        if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-            y3.mul_ip();
-            y3.norm();
-        }
 
         x3.copy(y3);
         x3.mul(t4);
@@ -721,14 +700,7 @@ ECP2.RHS = function(x) {
     c.rcopy(ROM_CURVE.CURVE_B);
     b = new FP2(c); //b.bseta(c);
 
-    if (ECP.SEXTIC_TWIST === ECP.D_TYPE) {
-        b.div_ip();
-    }
-    if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-        b.norm();
-        b.mul_ip();
-        b.norm();
-    }
+    b.div_ip();
 
     r.mul(x);
     r.add(b);
@@ -856,60 +828,28 @@ ECP2.mapit = function(h) {
     fa.rcopy(ROM_FIELD.Fra);
     fb.rcopy(ROM_FIELD.Frb);
     X = new FP2(fa, fb);
-    if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-        X.inverse();
-        X.norm();
-    }
 
     x = new BIG(0);
     x.rcopy(ROM_CURVE.CURVE_Bnx);
 
-    if (ECP.CURVE_PAIRING_TYPE === ECP.BN) {
-        T = new ECP2();
-        T.copy(Q);
-        T = T.mul(x);
-        if (ECP.SIGN_OF_X === ECP.NEGATIVEX) {
-            T.neg();
-        }
-        K = new ECP2();
-        K.copy(T);
-        K.dbl();
-        K.add(T); //K.affine();
+    T = new ECP2();
+    T.copy(Q);
+    T = T.mul(x);
+    T.neg();
+    K = new ECP2();
+    K.copy(T);
+    K.dbl();
+    K.add(T); //K.affine();
 
-        K.frob(X);
-        Q.frob(X);
-        Q.frob(X);
-        Q.frob(X);
-        Q.add(T);
-        Q.add(K);
-        T.frob(X);
-        T.frob(X);
-        Q.add(T);
-    }
-
-    if (ECP.CURVE_PAIRING_TYPE === ECP.BLS) {
-
-        xQ = Q.mul(x);
-        x2Q = xQ.mul(x);
-
-        if (ECP.SIGN_OF_X === ECP.NEGATIVEX) {
-            xQ.neg();
-        }
-
-        x2Q.sub(xQ);
-        x2Q.sub(Q);
-
-        xQ.sub(Q);
-        xQ.frob(X);
-
-        Q.dbl();
-        Q.frob(X);
-        Q.frob(X);
-
-        Q.add(x2Q);
-        Q.add(xQ);
-    }
-
+    K.frob(X);
+    Q.frob(X);
+    Q.frob(X);
+    Q.frob(X);
+    Q.add(T);
+    Q.add(K);
+    T.frob(X);
+    T.frob(X);
+    Q.add(T);
     Q.affine();
 
     return Q;

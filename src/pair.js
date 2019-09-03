@@ -70,15 +70,7 @@ var PAIR = {
 
             sb = 3 * ROM_CURVE.CURVE_B_I;
             ZZ.imul(sb);
-            if (ECP.SEXTIC_TWIST === ECP.D_TYPE) {
-                ZZ.div_ip2();
-            }
-            if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-                ZZ.mul_ip();
-                ZZ.add(ZZ);
-                YZ.mul_ip();
-                YZ.norm();
-            }
+            ZZ.div_ip2();
             ZZ.norm(); // 3b.Z^2
 
             YY.add(YY);
@@ -86,15 +78,8 @@ var PAIR = {
             ZZ.norm(); // 3b.Z^2-Y^2
 
             a = new FP4(YZ, ZZ); // -2YZ.Ys | 3b.Z^2-Y^2 | 3X^2.Xs
-            if (ECP.SEXTIC_TWIST === ECP.D_TYPE) {
-                b = new FP4(XX); // L(0,1) | L(0,0) | L(1,0)
-                c = new FP4(0);
-            }
-            if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-                b = new FP4(0);
-                c = new FP4(XX); c.times_i();
-            }
-
+            b = new FP4(XX); // L(0,1) | L(0,0) | L(1,0)
+            c = new FP4(0);
             A.dbl();
         } else { /* Addition */
             X1 = new FP2(A.getx()); // X1
@@ -112,12 +97,6 @@ var PAIR = {
 
             T1.copy(X1); // T1=X1-Z1.X2
             X1.pmul(Qy); // X1=(X1-Z1.X2).Ys
-
-            if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-                X1.mul_ip();
-                X1.norm();
-            }
-
             T1.mul(B.gety()); // T1=(X1-Z1.X2).Y2
 
             T2.copy(Y1); // T2=Y1-Z1.Y2
@@ -129,15 +108,8 @@ var PAIR = {
             Y1.norm(); // Y1=-(Y1-Z1.Y2).Xs
 
             a = new FP4(X1, T2); // (X1-Z1.X2).Ys  |  (Y1-Z1.Y2).X2 - (X1-Z1.X2).Y2  | - (Y1-Z1.Y2).Xs
-            if (ECP.SEXTIC_TWIST === ECP.D_TYPE) {
-                b = new FP4(Y1);
-                c = new FP4(0);
-            }
-            if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-                b = new FP4(0);
-                c = new FP4(Y1); c.times_i();
-            }
-
+            b = new FP4(Y1);
+            c = new FP4(0);
             A.add(B);
         }
 
@@ -174,9 +146,7 @@ var PAIR = {
             res.ssmul(r[i]);
         }
 
-        if (ECP.SIGN_OF_X===ECP.NEGATIVEX) {
-            res.conj();
-        }
+        res.conj();
         res.ssmul(r[0]);
 
         return res;
@@ -206,17 +176,11 @@ var PAIR = {
         P.affine();
         Q.affine();
 
-        if (ECP.CURVE_PAIRING_TYPE === ECP.BN) {
-            var fa = new BIG(0);
-            fa.rcopy(ROM_FIELD.Fra);
-            var fb = new BIG(0);
-            fb.rcopy(ROM_FIELD.Frb);
-            f = new FP2(fa, fb);
-            if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-                f.inverse();
-                f.norm();
-            }
-        }
+        var fa = new BIG(0);
+        fa.rcopy(ROM_FIELD.Fra);
+        var fb = new BIG(0);
+        fb.rcopy(ROM_FIELD.Frb);
+        f = new FP2(fa, fb);
 
         var Qx=new FP(Q.getx());
         var Qy=new FP(Q.gety());
@@ -245,20 +209,16 @@ var PAIR = {
         }
 
         /* R-ate fixup required for BN curves */
-        if (ECP.CURVE_PAIRING_TYPE === ECP.BN) {
-            if (ECP.SIGN_OF_X === ECP.NEGATIVEX) {
-                A.neg();
-            }
+        A.neg();
 
-            K.copy(P);
-            K.frob(f);
-            lv=PAIR.line(A,K,Qx,Qy);
-            K.frob(f);
-            K.neg();
-            lv2=PAIR.line(A,K,Qx,Qy);
-            lv.smul(lv2);
-            r[0].ssmul(lv);
-        }
+        K.copy(P);
+        K.frob(f);
+        lv=PAIR.line(A,K,Qx,Qy);
+        K.frob(f);
+        K.neg();
+        lv2=PAIR.line(A,K,Qx,Qy);
+        lv.smul(lv2);
+        r[0].ssmul(lv);
     },
 
     /**
@@ -278,20 +238,11 @@ var PAIR = {
         n3 = new BIG(0);
         K = new ECP2();
 
-        if (ECP.CURVE_PAIRING_TYPE === ECP.BN) {
-
-            fa = new BIG(0);
-            fa.rcopy(ROM_FIELD.Fra);
-            fb = new BIG(0);
-            fb.rcopy(ROM_FIELD.Frb);
-            f = new FP2(fa, fb);
-
-            if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-                f.inverse();
-                f.norm();
-            }
-        }
-
+        fa = new BIG(0);
+        fa.rcopy(ROM_FIELD.Fra);
+        fb = new BIG(0);
+        fb.rcopy(ROM_FIELD.Frb);
+        f = new FP2(fa, fb);
         var P=new ECP2(); P.copy(P1); P.affine();
         var Q=new ECP(); Q.copy(Q1); Q.affine();
 
@@ -324,26 +275,20 @@ var PAIR = {
             r.ssmul(lv);
         }
 
-        if (ECP.SIGN_OF_X === ECP.NEGATIVEX) {
-            r.conj();
-        }
+        r.conj();
 
         /* R-ate fixup */
-        if (ECP.CURVE_PAIRING_TYPE === ECP.BN) {
-            if (ECP.SIGN_OF_X === ECP.NEGATIVEX) {
-                A.neg();
-            }
+        A.neg();
 
-            K.copy(P);
-            K.frob(f);
+        K.copy(P);
+        K.frob(f);
 
-            lv = PAIR.line(A, K, Qx, Qy);
-            K.frob(f);
-            K.neg();
-            lv2 = PAIR.line(A, K, Qx, Qy);
-            lv.smul(lv2);
-            r.ssmul(lv);
-        }
+        lv = PAIR.line(A, K, Qx, Qy);
+        K.frob(f);
+        K.neg();
+        lv2 = PAIR.line(A, K, Qx, Qy);
+        lv.smul(lv2);
+        r.ssmul(lv);
 
         return r;
     },
@@ -367,18 +312,11 @@ var PAIR = {
         n3 = new BIG(0);
         K = new ECP2();
 
-        if (ECP.CURVE_PAIRING_TYPE === ECP.BN) {
-            fa = new BIG(0);
-            fa.rcopy(ROM_FIELD.Fra);
-            fb = new BIG(0);
-            fb.rcopy(ROM_FIELD.Frb);
-            f = new FP2(fa, fb);
-
-            if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-                f.inverse();
-                f.norm();
-            }
-        }
+        fa = new BIG(0);
+        fa.rcopy(ROM_FIELD.Fra);
+        fb = new BIG(0);
+        fb.rcopy(ROM_FIELD.Frb);
+        f = new FP2(fa, fb);
 
         var P=new ECP2(); P.copy(P1); P.affine();
         var Q=new ECP(); Q.copy(Q1); Q.affine();
@@ -431,37 +369,30 @@ var PAIR = {
             }
         }
 
-        if (ECP.SIGN_OF_X === ECP.NEGATIVEX) {
-            r.conj();
-        }
-
+        r.conj();
 
         // R-ate fixup required for BN curves
-        if (ECP.CURVE_PAIRING_TYPE === ECP.BN) {
-            if (ECP.SIGN_OF_X === ECP.NEGATIVEX) {
-                A.neg();
-                B.neg();
-            }
-            K.copy(P);
-            K.frob(f);
+        A.neg();
+        B.neg();
+        K.copy(P);
+        K.frob(f);
 
-            lv = PAIR.line(A, K, Qx, Qy);
-            K.frob(f);
-            K.neg();
-            lv2 = PAIR.line(A, K, Qx, Qy);
-            lv.smul(lv2);
-            r.ssmul(lv);
+        lv = PAIR.line(A, K, Qx, Qy);
+        K.frob(f);
+        K.neg();
+        lv2 = PAIR.line(A, K, Qx, Qy);
+        lv.smul(lv2);
+        r.ssmul(lv);
 
-            K.copy(R);
-            K.frob(f);
+        K.copy(R);
+        K.frob(f);
 
-            lv = PAIR.line(B, K, Sx, Sy);
-            K.frob(f);
-            K.neg();
-            lv2 = PAIR.line(B, K, Sx, Sy);
-            lv.smul(lv2);
-            r.ssmul(lv);
-        }
+        lv = PAIR.line(B, K, Sx, Sy);
+        K.frob(f);
+        K.neg();
+        lv2 = PAIR.line(B, K, Sx, Sy);
+        lv.smul(lv2);
+        r.ssmul(lv);
 
         return r;
     },
@@ -499,116 +430,51 @@ var PAIR = {
         r.mul(lv);
 
         /* Hard part of final exp */
-        if (ECP.CURVE_PAIRING_TYPE === ECP.BN) {
-            lv.copy(r);
-            lv.frob(f);
-            x0 = new FP12(lv); //x0.copy(lv);
-            x0.frob(f);
-            lv.mul(r);
-            x0.mul(lv);
-            x0.frob(f);
-            x1 = new FP12(r); //x1.copy(r);
-            x1.conj();
+        lv.copy(r);
+        lv.frob(f);
+        x0 = new FP12(lv); //x0.copy(lv);
+        x0.frob(f);
+        lv.mul(r);
+        x0.mul(lv);
+        x0.frob(f);
+        x1 = new FP12(r); //x1.copy(r);
+        x1.conj();
 
-            x4 = r.pow(x);
-            if (ECP.SIGN_OF_X === ECP.POSITIVEX) {
-                x4.conj();
-            }
+        x4 = r.pow(x);
 
-            x3 = new FP12(x4); //x3.copy(x4);
-            x3.frob(f);
-            x2 = x4.pow(x);
-            if (ECP.SIGN_OF_X === ECP.POSITIVEX) {
-                x2.conj();
-            }
-            x5 = new FP12(x2); /*x5.copy(x2);*/
-            x5.conj();
-            lv = x2.pow(x);
-            if (ECP.SIGN_OF_X === ECP.POSITIVEX) {
-                lv.conj();
-            }
-            x2.frob(f);
-            r.copy(x2);
-            r.conj();
+        x3 = new FP12(x4); //x3.copy(x4);
+        x3.frob(f);
+        x2 = x4.pow(x);
+        x5 = new FP12(x2); /*x5.copy(x2);*/
+        x5.conj();
+        lv = x2.pow(x);
+        x2.frob(f);
+        r.copy(x2);
+        r.conj();
 
-            x4.mul(r);
-            x2.frob(f);
+        x4.mul(r);
+        x2.frob(f);
 
-            r.copy(lv);
-            r.frob(f);
-            lv.mul(r);
+        r.copy(lv);
+        r.frob(f);
+        lv.mul(r);
 
-            lv.usqr();
-            lv.mul(x4);
-            lv.mul(x5);
-            r.copy(x3);
-            r.mul(x5);
-            r.mul(lv);
-            lv.mul(x2);
-            r.usqr();
-            r.mul(lv);
-            r.usqr();
-            lv.copy(r);
-            lv.mul(x1);
-            r.mul(x0);
-            lv.usqr();
-            r.mul(lv);
-            r.reduce();
-        } else {
-            // Ghamman & Fouotsa Method
-            y0 = new FP12(r);
-            y0.usqr();
-            y1 = y0.pow(x);
-            if (ECP.SIGN_OF_X===ECP.NEGATIVEX) {
-                y1.conj();
-            }
-            x.fshr(1);
-            y2 = y1.pow(x);
-            if (ECP.SIGN_OF_X===ECP.NEGATIVEX) {
-                y2.conj();
-            }
-            x.fshl(1);
-            y3 = new FP12(r);
-            y3.conj();
-            y1.mul(y3);
-
-            y1.conj();
-            y1.mul(y2);
-
-            y2 = y1.pow(x);
-            if (ECP.SIGN_OF_X===ECP.NEGATIVEX) {
-                y2.conj();
-            }
-
-            y3 = y2.pow(x);
-            if (ECP.SIGN_OF_X===ECP.NEGATIVEX) {
-                y3.conj();
-            }
-            y1.conj();
-            y3.mul(y1);
-
-            y1.conj();
-            y1.frob(f);
-            y1.frob(f);
-            y1.frob(f);
-            y2.frob(f);
-            y2.frob(f);
-            y1.mul(y2);
-
-            y2 = y3.pow(x);
-            if (ECP.SIGN_OF_X===ECP.NEGATIVEX) {
-                y2.conj();
-            }
-            y2.mul(y0);
-            y2.mul(r);
-
-            y1.mul(y2);
-            y2.copy(y3);
-            y2.frob(f);
-            y1.mul(y2);
-            r.copy(y1);
-            r.reduce();
-        }
+        lv.usqr();
+        lv.mul(x4);
+        lv.mul(x5);
+        r.copy(x3);
+        r.mul(x5);
+        r.mul(lv);
+        lv.mul(x2);
+        r.usqr();
+        r.mul(lv);
+        r.usqr();
+        lv.copy(r);
+        lv.mul(x1);
+        r.mul(x0);
+        lv.usqr();
+        r.mul(lv);
+        r.reduce();
 
         return r;
     }
@@ -621,14 +487,8 @@ var PAIR = {
   */
 PAIR.lbits = function(n3,n) {
     n.rcopy(ROM_CURVE.CURVE_Bnx);
-    if (ECP.CURVE_PAIRING_TYPE === ECP.BN) {
-        n.pmul(6);
-        if (ECP.SIGN_OF_X === ECP.POSITIVEX) {
-            n.inc(2);
-        } else {
-            n.dec(2);
-        }
-    }
+    n.pmul(6);
+    n.dec(2);
 
     n.norm();
     n3.copy(n);
@@ -646,42 +506,29 @@ PAIR.glv = function(e) {
     var u = [],
         t, q, v, d, x, x2, i, j;
 
-    if (ECP.CURVE_PAIRING_TYPE === ECP.BN) {
-        t = new BIG(0);
-        q = new BIG(0);
-        v = [];
+    t = new BIG(0);
+    q = new BIG(0);
+    v = [];
 
-        q.rcopy(ROM_CURVE.CURVE_Order);
+    q.rcopy(ROM_CURVE.CURVE_Order);
 
-        for (i = 0; i < 2; i++) {
-            t.rcopy(ROM_CURVE.CURVE_W[i]);
-            d = BIG.mul(t, e);
-            v[i] = new BIG(d.div(q));
-            u[i] = new BIG(0);
+    for (i = 0; i < 2; i++) {
+        t.rcopy(ROM_CURVE.CURVE_W[i]);
+        d = BIG.mul(t, e);
+        v[i] = new BIG(d.div(q));
+        u[i] = new BIG(0);
+    }
+
+    u[0].copy(e);
+
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 2; j++) {
+            t.rcopy(ROM_CURVE.CURVE_SB[j][i]);
+            t.copy(BIG.modmul(v[j], t, q));
+            u[i].add(q);
+            u[i].sub(t);
+            u[i].mod(q);
         }
-
-        u[0].copy(e);
-
-        for (i = 0; i < 2; i++) {
-            for (j = 0; j < 2; j++) {
-                t.rcopy(ROM_CURVE.CURVE_SB[j][i]);
-                t.copy(BIG.modmul(v[j], t, q));
-                u[i].add(q);
-                u[i].sub(t);
-                u[i].mod(q);
-            }
-        }
-    } else { // -(x^2).P = (Beta.x,y)
-        q = new BIG(0);
-        q.rcopy(ROM_CURVE.CURVE_Order);
-        x = new BIG(0);
-        x.rcopy(ROM_CURVE.CURVE_Bnx);
-        x2 = BIG.smul(x, x);
-        u[0] = new BIG(e);
-        u[0].mod(x2);
-        u[1] = new BIG(e);
-        u[1].div(x2);
-        u[1].rsub(q);
     }
 
     return u;
@@ -696,48 +543,28 @@ PAIR.gs = function(e) {
     var u = [],
         i, j, t, q, v, d, x, w;
 
-    if (ECP.CURVE_PAIRING_TYPE === ECP.BN) {
-        t = new BIG(0);
-        q = new BIG(0);
-        q.rcopy(ROM_CURVE.CURVE_Order);
+    t = new BIG(0);
+    q = new BIG(0);
+    q.rcopy(ROM_CURVE.CURVE_Order);
 
-        v = [];
+    v = [];
 
-        for (i = 0; i < 4; i++) {
-            t.rcopy(ROM_CURVE.CURVE_WB[i]);
-            d = BIG.mul(t, e);
-            v[i] = new BIG(d.div(q));
-            u[i] = new BIG(0);
-        }
+    for (i = 0; i < 4; i++) {
+        t.rcopy(ROM_CURVE.CURVE_WB[i]);
+        d = BIG.mul(t, e);
+        v[i] = new BIG(d.div(q));
+        u[i] = new BIG(0);
+    }
 
-        u[0].copy(e);
+    u[0].copy(e);
 
-        for (i = 0; i < 4; i++) {
-            for (j = 0; j < 4; j++) {
-                t.rcopy(ROM_CURVE.CURVE_BB[j][i]);
-                t.copy(BIG.modmul(v[j], t, q));
-                u[i].add(q);
-                u[i].sub(t);
-                u[i].mod(q);
-            }
-        }
-    } else {
-        x = new BIG(0);
-        x.rcopy(ROM_CURVE.CURVE_Bnx);
-        q = new BIG(0);
-        q.rcopy(ROM_CURVE.CURVE_Order);
-        w = new BIG(e);
-
-        for (i = 0; i < 3; i++) {
-            u[i] = new BIG(w);
-            u[i].mod(x);
-            w.div(x);
-        }
-
-        u[3] = new BIG(w);
-        if (ECP.SIGN_OF_X===ECP.NEGATIVEX) {
-            u[1].copy(BIG.modneg(u[1], q));
-            u[3].copy(BIG.modneg(u[3], q));
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            t.rcopy(ROM_CURVE.CURVE_BB[j][i]);
+            t.copy(BIG.modmul(v[j], t, q));
+            u[i].add(q);
+            u[i].sub(t);
+            u[i].mod(q);
         }
     }
 
@@ -813,11 +640,6 @@ PAIR.G2mul = function(P, e) {
         fb = new BIG(0);
         fb.rcopy(ROM_FIELD.Frb);
         f = new FP2(fa, fb);
-
-        if (ECP.SEXTIC_TWIST === ECP.M_TYPE) {
-            f.inverse();
-            f.norm();
-        }
 
         q = new BIG(0);
         q.rcopy(ROM_CURVE.CURVE_Order);
