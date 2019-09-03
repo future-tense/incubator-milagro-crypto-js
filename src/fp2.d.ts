@@ -9,25 +9,16 @@ export class FP2 extends FpCommon<FP2> {
 
     public constructor(c: FP2 | FP | BIG | number, d?: FP2 | FP | BIG | number);
 
+    public isodd(): boolean;
     public getA(): BIG;
-
     public getB(): BIG;
-
     public set(c: FP, D: FP): void;
-
     public seta(c: FP): void;
-
     public bset(c: BIG, d: BIG): void;
-
     public bseta(c: BIG): void;
-
     public conj(): void;
-
     public div2(): void;
-
     public timesi(): void;
-
     public mul_ip(): void;
-
     public div_ip(): void;
 }

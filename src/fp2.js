@@ -86,6 +86,13 @@ FP2.prototype = {
     },
 
     /**
+     * Tests for FP2 being odd
+     */
+    isodd: function() {
+        return this.a.isodd();
+    },
+
+    /**
      * Conditional copy of FP2 number
      *
      * @this {FP2}

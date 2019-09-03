@@ -8,6 +8,7 @@ export class FP extends FpCommon<FP> {
     public static logb2(v: number): number;
     public static mod(d: DBIG): BIG;
 
+    public isodd(): boolean;
     public rcopy(y: FP): void;
     public bcopy(y: FP): void;
     public cswap(b: FP, d: number): void;

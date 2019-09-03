@@ -209,6 +209,13 @@ FP.prototype = {
     },
 
     /**
+     * Tests for FP being odd
+     */
+    isodd: function() {
+        return !!this.f.parity();
+    },
+
+    /**
      * Reduces all components of possibly unreduced FP mod Modulus
      *
      * @this {FP}
