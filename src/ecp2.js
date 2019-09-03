@@ -796,59 +796,6 @@ ECP2.teq = function(b, c) {
     return ((x >> 31) & 1);
 };
 
-/* needed for SOK */
-ECP2.mapit = function(h) {
-    var fa = new BIG(0),
-        fb = new BIG(0),
-        q, x, one, Q, T, K, X, xQ, x2Q;
-
-    q = new BIG(0);
-    q.rcopy(ROM_FIELD.Modulus);
-    x = BIG.fromBytes(h);
-    one = new BIG(1);
-    x.mod(q);
-
-    for (;;) {
-        X = new FP2(one, x);
-        Q = new ECP2();
-        Q.setx(X);
-        if (!Q.is_infinity()) {
-            break;
-        }
-        x.inc(1);
-        x.norm();
-    }
-    /* Fast Hashing to G2 - Fuentes-Castaneda, Knapp and Rodriguez-Henriquez */
-    fa.rcopy(ROM_FIELD.Fra);
-    fb.rcopy(ROM_FIELD.Frb);
-    X = new FP2(fa, fb);
-
-    x = new BIG(0);
-    x.rcopy(ROM_CURVE.CURVE_Bnx);
-
-    T = new ECP2();
-    T.copy(Q);
-    T = T.mul(x);
-    T.neg();
-    K = new ECP2();
-    K.copy(T);
-    K.dbl();
-    K.add(T); //K.affine();
-
-    K.frob(X);
-    Q.frob(X);
-    Q.frob(X);
-    Q.frob(X);
-    Q.add(T);
-    Q.add(K);
-    T.frob(X);
-    T.frob(X);
-    Q.add(T);
-    Q.affine();
-
-    return Q;
-};
-
 // CommonJS module exports
 if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
     module.exports = ECP2;

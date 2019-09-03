@@ -903,30 +903,6 @@ ECP.RHS = function(x) {
     return r;
 };
 
-ECP.mapit = function(h) {
-    var q = new BIG(0),
-        x = BIG.fromBytes(h),
-        P = new ECP();
-
-    q.rcopy(ROM_FIELD.Modulus);
-    x.mod(q);
-
-    for (;;) {
-        for (;;) {
-            P.setxi(x, 0);
-            x.inc(1); x.norm();
-            if (!P.is_infinity()){
-                break;
-            }
-
-        }
-        if (!P.is_infinity()) {
-            break;
-        }
-    }
-    return P;
-};
-
 // CommonJS module exports
 if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
     module.exports = ECP;
