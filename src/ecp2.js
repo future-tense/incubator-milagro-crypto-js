@@ -19,8 +19,6 @@
 
 var BIG = require("./big").BIG;
 var FP2 = require("./fp2");
-var ECP = require("./ecp");
-var ROM_FIELD = require("./rom_field");
 var ROM_CURVE = require("./rom_curve");
 
 /* AMCL Weierstrass elliptic curve functions over FP2 */
