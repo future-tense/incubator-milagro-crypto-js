@@ -5,7 +5,10 @@ import {FP8} from "./fp8";
 
 export class FP2 extends FpCommon<FP2> {
 
-    public constructor(c: FP2 | FP | BIG, d?: FP2 | FP | BIG);
+    a: FP;
+    b: FP;
+
+    public constructor(c: FP2 | FP | BIG | number, d?: FP2 | FP | BIG | number);
 
     public getA(): BIG;
 

@@ -17,7 +17,20 @@
  under the License.
  */
 
-var CTX = require("./src/ctx");
+var BIG = require("./src/big").BIG;
+var FP = require("./src/fp");
+var FP2 = require("./src/fp2");
+var FP12 = require("./src/fp12");
+var ECP = require("./src/ecp");
+var ECP2 = require("./src/ecp2");
+var PAIR = require("./src/pair");
+
 module.exports = {
-    CTX: CTX
+    BIG: BIG,
+    FP: FP,
+    FP2: FP2,
+    FP12: FP12,
+    ECP: ECP,
+    ECP2: ECP2,
+    PAIR: PAIR
 };
