@@ -374,6 +374,7 @@ const PAIR = {
         K.copy(P);
         K.frob(f);
 
+        let lv, lv2;
         lv = PAIR.line(A, K, Qx, Qy);
         K.frob(f);
         K.neg();
