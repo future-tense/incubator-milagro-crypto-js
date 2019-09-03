@@ -17,8 +17,8 @@
     under the License.
 */
 
-var BIG = require("./big").BIG;
-var FP2 = require("./fp2");
+const BIG = require("./big").BIG;
+const FP2 = require("./fp2");
 
 /* Finite Field arithmetic  Fp^4 functions */
 
@@ -32,7 +32,7 @@ var FP2 = require("./fp2");
   * @constructor
   * @this {FP4}
   */
-var FP4 = function(c, d) {
+const FP4 = function(c, d) {
     if (c instanceof FP4) {
         this.a = new FP2(c.a);
         this.b = new FP2(c.b);
@@ -79,7 +79,7 @@ FP4.prototype = {
      * @this {FP4}
      */
     isunity: function() {
-        var one = new FP2(1);
+        const one = new FP2(1);
         return (this.a.equals(one) && this.b.iszilch());
     },
 
@@ -203,11 +203,12 @@ FP4.prototype = {
      */
     neg: function() {
         this.norm();
-        var m = new FP2(this.a), 
-            t = new FP2(0);
 
+        const m = new FP2(this.a);
         m.add(this.b);
         m.neg();
+
+        const t = new FP2(0);
         t.copy(m);
         t.add(this.b);
         this.b.copy(m);
@@ -254,7 +255,7 @@ FP4.prototype = {
      * @param x FP4 instance
      */
     sub: function(x) {
-        var m = new FP4(x); 
+        const m = new FP4(x);
         m.neg();
         this.add(m);
     },
@@ -294,9 +295,9 @@ FP4.prototype = {
     sqr: function() {
         // this.norm();
 
-        var t1 = new FP2(this.a), 
-            t2 = new FP2(this.b), 
-            t3 = new FP2(this.a); 
+        const t1 = new FP2(this.a);
+        const t2 = new FP2(this.b);
+        const t3 = new FP2(this.a);
 
         t3.mul(this.b);
         t1.add(this.b);
@@ -333,10 +334,10 @@ FP4.prototype = {
     mul: function(y) {
         // this.norm();
 
-        var t1 = new FP2(this.a), 
-            t2 = new FP2(this.b), 
-            t3 = new FP2(0),
-            t4 = new FP2(this.b); 
+        const t1 = new FP2(this.a);
+        const t2 = new FP2(this.b);
+        const t3 = new FP2(0);
+        const t4 = new FP2(this.b);
 
         t1.mul(y.a);
         t2.mul(y.b);
@@ -381,9 +382,8 @@ FP4.prototype = {
      */
     inverse: function() {
         this.norm();
-
-        var t1 = new FP2(this.a), 
-            t2 = new FP2(this.b); 
+        const t1 = new FP2(this.a);
+        const t2 = new FP2(this.b);
 
         t1.sqr();
         t2.sqr();
@@ -403,8 +403,8 @@ FP4.prototype = {
      * @this {FP4}
      */
     times_i: function() {
-        var s = new FP2(this.b), //s.copy(this.b);
-            t = new FP2(this.b); //t.copy(this.b);
+        const s = new FP2(this.b);
+        const t = new FP2(this.b);
 
         s.times_i();
         t.add(s);
@@ -432,14 +432,15 @@ FP4.prototype = {
      * @param e BIG instance exponent
      */
     pow: function(e) {
-        var w = new FP4(this), 
-            z = new BIG(e), 
-            r = new FP4(1),
-            bt;
+        const w = new FP4(this);
         w.norm();
+
+        const z = new BIG(e);
         z.norm();
+
+        const r = new FP4(1);
         for (;;) {
-            bt = z.parity();
+            const bt = z.parity();
             z.fshr(1);
 
             if (bt === 1) {
@@ -466,8 +467,8 @@ FP4.prototype = {
      * @param z FP4 instance
      */
     xtr_A: function(w, y, z) {
-        var r = new FP4(w), 
-            t = new FP4(w); 
+        const r = new FP4(w);
+        const t = new FP4(w);
 
         //y.norm(); // ??
         r.sub(y);
@@ -491,10 +492,10 @@ FP4.prototype = {
      * @this {FP4}
      */
     xtr_D: function() {
-        var w = new FP4(this); 
-        this.sqr();
+        const w = new FP4(this);
         w.conj();
-        w.add(w); 
+        w.add(w);
+        this.sqr();
         this.sub(w);
         this.reduce();
     },
@@ -506,21 +507,18 @@ FP4.prototype = {
      * @param n Big number
      */
     xtr_pow: function(n) {
-        var sf = new FP4(this);
+        const sf = new FP4(this);
         sf.norm();
-        var a = new FP4(3),
-            b = new FP4(sf),
-            c = new FP4(b),
-            t = new FP4(0),
-            r = new FP4(0),
-            par, v, nb, i;
-
+        const a = new FP4(3);
+        const b = new FP4(sf);
+        const c = new FP4(b);
+        const t = new FP4(0);
+        const r = new FP4(0);
 
         c.xtr_D();
 
-        //n.norm();
-        par = n.parity();
-        v = new BIG(n);
+        const par = n.parity();
+        const v = new BIG(n);
         v.norm();
         v.fshr(1);
 
@@ -529,8 +527,8 @@ FP4.prototype = {
             v.norm();
         }
 
-        nb = v.nbits();
-        for (i = nb - 1; i >= 0; i--) {
+        const nb = v.nbits();
+        for (let i = nb - 1; i >= 0; i--) {
             if (v.bit(i) !== 1) {
                 t.copy(b);
                 sf.conj();
@@ -567,21 +565,20 @@ FP4.prototype = {
      */
     xtr_pow2: function(ck, ckml, ckm2l, a, b) {
 
-        var e = new BIG(a), 
-            d = new BIG(b), 
-            w = new BIG(0),
-            cu = new FP4(ck), 
-            cv = new FP4(this), 
-            cumv = new FP4(ckml), 
-            cum2v = new FP4(ckm2l), 
-            r = new FP4(0),
-            t = new FP4(0),
-            f2 = 0,
-            i;
+        const e = new BIG(a);
+        const d = new BIG(b);
+        const w = new BIG(0);
+        const cu = new FP4(ck);
+        const cv = new FP4(this);
+        const cumv = new FP4(ckml);
+        const cum2v = new FP4(ckm2l);
+        const r = new FP4(0);
+        const t = new FP4(0);
 
         e.norm();
         d.norm();
 
+        let f2 = 0;
         while (d.parity() === 0 && e.parity() === 0) {
             d.fshr(1);
             e.fshr(1);
@@ -618,7 +615,7 @@ FP4.prototype = {
                     cum2v.xtr_D();
                     cumv.copy(t);
                     cu.xtr_D();
-                } else if (e.parity() == 1) {
+                } else if (e.parity() === 1) {
                     d.sub(e);
                     d.norm();
                     d.fshr(1);
@@ -674,7 +671,7 @@ FP4.prototype = {
                     t.xtr_D();
                     cv.copy(cu);
                     cu.copy(t);
-                } else if (d.parity() == 1) {
+                } else if (d.parity() === 1) {
                     w.copy(e);
                     e.copy(d);
                     w.sub(d);
@@ -705,7 +702,7 @@ FP4.prototype = {
         }
         r.copy(cv);
         r.xtr_A(cu, cumv, cum2v);
-        for (i = 0; i < f2; i++) {
+        for (let i = 0; i < f2; i++) {
             r.xtr_D();
         }
         r = r.xtr_pow(d);
@@ -730,9 +727,10 @@ FP4.prototype = {
      * @this {FP4}
      */		
     div_i: function() {
-        var u=new FP2(this.a),
-            v=new FP2(this.b);
+        const u = new FP2(this.a);
         u.div_ip();
+
+        const v = new FP2(this.b);
         this.a.copy(v);
         this.b.copy(u);
     },
@@ -743,10 +741,13 @@ FP4.prototype = {
      * @this {FP4}
      */			
     div_2i: function() {
-        var u=new FP2(this.a),
-            v=new FP2(this.b);
+        const u = new FP2(this.a);
         u.div_ip2();
-        v.add(v); v.norm();
+
+        const v = new FP2(this.b);
+        v.add(v);
+        v.norm();
+
         this.a.copy(v);
         this.b.copy(u);
     },
@@ -760,9 +761,10 @@ FP4.prototype = {
         if (this.iszilch()) {
             return true;
         }
-        var wa=new FP2(this.a),
-            ws=new FP2(this.b),
-            wt=new FP2(this.a);
+        const wa = new FP2(this.a);
+        const ws = new FP2(this.b);
+        const wt = new FP2(this.a);
+
         if (ws.iszilch()) {
             if (wt.sqrt()) {
                 this.a.copy(wt);
@@ -787,16 +789,23 @@ FP4.prototype = {
             return false;
         }
 
-        wa.copy(wt); wa.add(ws); wa.norm(); wa.div2();
+        wa.copy(wt);
+        wa.add(ws);
+        wa.norm();
+        wa.div2();
 
         if (!wa.sqrt()) {
-            wa.copy(wt); wa.sub(ws); wa.norm(); wa.div2();
+            wa.copy(wt);
+            wa.sub(ws);
+            wa.norm();
+            wa.div2();
             if (!wa.sqrt()) {
                 return false;
             }
         }
         wt.copy(this.b);
-        ws.copy(wa); ws.add(wa);
+        ws.copy(wa);
+        ws.add(wa);
         ws.inverse();
 
         wt.mul(ws);

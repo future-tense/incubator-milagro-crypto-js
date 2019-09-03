@@ -17,9 +17,9 @@
     under the License.
 */
 
-var BIG = require("./big").BIG;
-var FP2 = require("./fp2");
-var ROM_CURVE = require("./rom_curve");
+const BIG = require("./big").BIG;
+const FP2 = require("./fp2");
+const ROM_CURVE = require("./rom_curve");
 
 /* AMCL Weierstrass elliptic curve functions over FP2 */
 
@@ -31,7 +31,7 @@ var ROM_CURVE = require("./rom_curve");
  * @constructor
  * @this {ECP2}
  */
-var ECP2 = function(input) {
+const ECP2 = function(input) {
     if (input instanceof ECP2) {
         // copy constructor
         this.x = new FP2(input.x);
@@ -101,11 +101,9 @@ ECP2.prototype = {
      * @this {ECP2}
      */
     select: function(W, b) {
-        var MP = new ECP2(),
-            m, babs;
 
-        m = b >> 31,
-        babs = (b ^ m) - m;
+        const m = b >> 31;
+        let babs = (b ^ m) - m;
         babs = (babs - 1) / 2;
 
         this.cmove(W[0], ECP2.teq(babs, 0)); // conditional move
@@ -117,6 +115,7 @@ ECP2.prototype = {
         this.cmove(W[6], ECP2.teq(babs, 6));
         this.cmove(W[7], ECP2.teq(babs, 7));
 
+        const MP = new ECP2();
         MP.copy(this);
         MP.neg();
         this.cmove(MP, (m & 1));
@@ -129,11 +128,10 @@ ECP2.prototype = {
      * @param Q ECP2 instance
      */
     equals: function(Q) {
-        var a, b;
 
-        a = new FP2(0);
+        const a = new FP2(0);
         a.copy(this.x);
-        b = new FP2(0);
+        const b = new FP2(0);
         b.copy(Q.x);
 
         a.copy(this.x);
@@ -152,11 +150,7 @@ ECP2.prototype = {
         b.copy(Q.y);
         b.mul(this.z);
         b.reduce();
-        if (!a.equals(b)) {
-            return false;
-        }
-
-        return true;
+        return (a.equals(b));
     },
 
     /**
@@ -177,13 +171,12 @@ ECP2.prototype = {
      * @this {ECP2}
      */
     affine: function() {
-        var one;
 
         if (this.is_infinity()) {
             return;
         }
 
-        one = new FP2(1);
+        const one = new FP2(1);
 
         if (this.z.equals(one)) {
             this.x.reduce();
@@ -206,7 +199,9 @@ ECP2.prototype = {
      * @this {ECP2}
      */
     getX: function() {
-        var W=new ECP2(); W.copy(this); W.affine();
+        const W = new ECP2();
+        W.copy(this);
+        W.affine();
         return W.x;
     },
 
@@ -217,7 +212,9 @@ ECP2.prototype = {
      * @this {ECP2}
      */
     getY: function() {
-        var W=new ECP2(); W.copy(this); W.affine();
+        const W = new ECP2();
+        W.copy(this);
+        W.affine();
         return W.y;
     },
 
@@ -255,25 +252,27 @@ ECP2.prototype = {
      * @param b byte array output
      */
     toBytes: function(b) {
-        var t = [],
-            i;
-        var W=new ECP2(); W.copy(this);
+
+        const W = new ECP2();
+        W.copy(this);
         W.affine();
+
+        const t = [];
         W.x.getA().toBytes(t);
-        for (i = 0; i < BIG.MODBYTES; i++) {
+        for (let i = 0; i < BIG.MODBYTES; i++) {
             b[i] = t[i];
         }
         W.x.getB().toBytes(t);
-        for (i = 0; i < BIG.MODBYTES; i++) {
+        for (let i = 0; i < BIG.MODBYTES; i++) {
             b[i + BIG.MODBYTES] = t[i];
         }
 
         W.y.getA().toBytes(t);
-        for (i = 0; i < BIG.MODBYTES; i++) {
+        for (let i = 0; i < BIG.MODBYTES; i++) {
             b[i + 2 * BIG.MODBYTES] = t[i];
         }
         W.y.getB().toBytes(t);
-        for (i = 0; i < BIG.MODBYTES; i++) {
+        for (let i = 0; i < BIG.MODBYTES; i++) {
             b[i + 3 * BIG.MODBYTES] = t[i];
         }
     },
@@ -285,10 +284,13 @@ ECP2.prototype = {
      * @return hex string
      */
     toString: function() {
-        var W=new ECP2(); W.copy(this);
+        const W = new ECP2();
+        W.copy(this);
+
         if (W.is_infinity()) {
             return "infinity";
         }
+
         W.affine();
         return "(" + W.x.toString() + "," + W.y.toString() + ")";
     },
@@ -302,16 +304,14 @@ ECP2.prototype = {
      * @param iy y-value
      */
     setxy: function(ix, iy) {
-        var rhs, y2;
-
         this.x.copy(ix);
         this.y.copy(iy);
         this.z.one();
         this.x.norm();
 
-        rhs = ECP2.RHS(this.x);
+        const rhs = ECP2.RHS(this.x);
 
-        y2 = new FP2(this.y);
+        const y2 = new FP2(this.y);
         y2.sqr();
 
         if (!y2.equals(rhs)) {
@@ -326,13 +326,11 @@ ECP2.prototype = {
      * @param ix x-value
      */
     setx: function(ix) {
-        var rhs;
-
         this.x.copy(ix);
         this.z.one();
         this.x.norm();
 
-        rhs = ECP2.RHS(this.x);
+        const rhs = ECP2.RHS(this.x);
 
         if (rhs.sqrt()) {
             this.y.copy(rhs);
@@ -347,9 +345,7 @@ ECP2.prototype = {
      * @this {ECP2}
      */
     frob: function(X) {
-        var X2;
-
-        X2 = new FP2(X); //X2.copy(X);
+        const X2 = new FP2(X); //X2.copy(X);
         X2.sqr();
         this.x.conj();
         this.y.conj();
@@ -366,21 +362,20 @@ ECP2.prototype = {
      * @this {ECP2}
      */
     dbl: function() {
-        var iy, t0, t1, t2, x3, y3;
 
-        iy = new FP2(0);
+        const iy = new FP2(0);
         iy.copy(this.y);
         iy.mul_ip();
         iy.norm();
 
-        t0 = new FP2(0);
+        const t0 = new FP2(0);
         t0.copy(this.y);
         t0.sqr();
         t0.mul_ip();
-        t1 = new FP2(0);
+        const t1 = new FP2(0);
         t1.copy(iy);
         t1.mul(this.z);
-        t2 = new FP2(0);
+        const t2 = new FP2(0);
         t2.copy(this.z);
         t2.sqr();
 
@@ -393,11 +388,11 @@ ECP2.prototype = {
 
         t2.imul(3 * ROM_CURVE.CURVE_B_I);
 
-        x3 = new FP2(0);
+        const x3 = new FP2(0);
         x3.copy(t2);
         x3.mul(this.z);
 
-        y3 = new FP2(0);
+        const y3 = new FP2(0);
         y3.copy(t0);
 
         y3.add(t2);
@@ -432,24 +427,24 @@ ECP2.prototype = {
      * @this {ECP2}
      */
     add: function(Q) {
-        var b, t0, t1, t2, t3, t4, x3, y3, z3;
 
-        b = 3 * ROM_CURVE.CURVE_B_I;
-        t0 = new FP2(0);
+        const b = 3 * ROM_CURVE.CURVE_B_I;
+
+        const t0 = new FP2(0);
         t0.copy(this.x);
         t0.mul(Q.x); // x.Q.x
-        t1 = new FP2(0);
+        const t1 = new FP2(0);
         t1.copy(this.y);
         t1.mul(Q.y); // y.Q.y
 
-        t2 = new FP2(0);
+        const t2 = new FP2(0);
         t2.copy(this.z);
         t2.mul(Q.z);
-        t3 = new FP2(0);
+        const t3 = new FP2(0);
         t3.copy(this.x);
         t3.add(this.y);
         t3.norm(); //t3=X1+Y1
-        t4 = new FP2(0);
+        const t4 = new FP2(0);
         t4.copy(Q.x);
         t4.add(Q.y);
         t4.norm(); //t4=X2+Y2
@@ -465,7 +460,7 @@ ECP2.prototype = {
         t4.copy(this.y);
         t4.add(this.z);
         t4.norm(); //t4=Y1+Z1
-        x3 = new FP2(0);
+        const x3 = new FP2(0);
         x3.copy(Q.y);
         x3.add(Q.z);
         x3.norm(); //x3=Y2+Z2
@@ -482,7 +477,8 @@ ECP2.prototype = {
         x3.copy(this.x);
         x3.add(this.z);
         x3.norm(); // x3=X1+Z1
-        y3 = new FP2(0);
+
+        const y3 = new FP2(0);
         y3.copy(Q.x);
         y3.add(Q.z);
         y3.norm(); // y3=X2+Z2
@@ -503,7 +499,7 @@ ECP2.prototype = {
         t0.norm();
         t2.imul(b);
 
-        z3 = new FP2(0);
+        const z3 = new FP2(0);
         z3.copy(t1);
         z3.add(t2);
         z3.norm();
@@ -540,11 +536,10 @@ ECP2.prototype = {
      * @param Q ECP2 instance
      */
     sub: function(Q) {
-        var D;
-        var NQ=new ECP2(); NQ.copy(Q);
+        const NQ=new ECP2();
+        NQ.copy(Q);
         NQ.neg();
-        D = this.add(NQ);
-        return D;
+        return this.add(NQ);
     },
 
     /**
@@ -555,48 +550,47 @@ ECP2.prototype = {
      */
     mul: function(e) {
         /* fixed size windows */
-        var mt = new BIG(),
-            t = new BIG(),
-            C = new ECP2(),
-            P = new ECP2(),
-            Q = new ECP2(),
-            W = [],
-            w = [],
-            i, nb, s, ns;
 
         if (this.is_infinity()) {
             return new ECP2();
         }
 
         // precompute table
+        const Q = new ECP2();
         Q.copy(this);
         Q.dbl();
+
+        const W = [];
         W[0] = new ECP2();
         W[0].copy(this);
 
-        for (i = 1; i < 8; i++) {
+        for (let i = 1; i < 8; i++) {
             W[i] = new ECP2();
             W[i].copy(W[i - 1]);
             W[i].add(Q);
         }
 
         // make exponent odd - add 2P if even, P if odd
+        const t = new BIG();
         t.copy(e);
-        s = t.parity();
+        const s = t.parity();
         t.inc(1);
         t.norm();
-        ns = t.parity();
+        const ns = t.parity();
+        const mt = new BIG();
         mt.copy(t);
         mt.inc(1);
         mt.norm();
         t.cmove(mt, s);
         Q.cmove(this, ns);
+        const C = new ECP2();
         C.copy(Q);
 
-        nb = 1 + Math.floor((t.nbits() + 3) / 4);
+        const nb = 1 + Math.floor((t.nbits() + 3) / 4);
 
         // convert exponent to signed 4-bit window
-        for (i = 0; i < nb; i++) {
+        const w = [];
+        for (let i = 0; i < nb; i++) {
             w[i] = (t.lastbits(5) - 16);
             t.dec(w[i]);
             t.norm();
@@ -604,8 +598,9 @@ ECP2.prototype = {
         }
         w[nb] = t.lastbits(5);
 
+        const P = new ECP2();
         P.copy(W[Math.floor((w[nb] - 1) / 2)]);
-        for (i = nb - 1; i >= 0; i--) {
+        for (let i = nb - 1; i >= 0; i--) {
             Q.select(W, w[i]);
             P.dbl();
             P.dbl();
@@ -626,19 +621,19 @@ ECP2.prototype = {
   * @this {ECP2}
   */
 ECP2.generator = function() {
-    var G=new ECP2(),
-        A = new BIG(0),
-        B = new BIG(0),
-        QX, QY;
-
+    const A = new BIG(0);
+    const B = new BIG(0);
     A.rcopy(ROM_CURVE.CURVE_Pxa);
     B.rcopy(ROM_CURVE.CURVE_Pxb);
-    QX = new FP2(0);
+    const QX = new FP2(0);
     QX.bset(A, B);
+
     A.rcopy(ROM_CURVE.CURVE_Pya);
     B.rcopy(ROM_CURVE.CURVE_Pyb);
-    QY = new FP2(0);
+    const QY = new FP2(0);
     QY.bset(A, B);
+
+    const G = new ECP2();
     G.setxy(QX, QY);
     return G;
 };
@@ -650,17 +645,16 @@ ECP2.generator = function() {
   * @param b input byte array
   */
 ECP2.fromBytes = function(b) {
-    var ra, rb, rx, ry, P;
 
-    ra = BIG.fromBytes(b.slice(0, 32));
-    rb = BIG.fromBytes(b.slice(32, 64));
-    rx = new FP2(ra, rb);
+    const rax = BIG.fromBytes(b.slice(0, 32));
+    const rbx = BIG.fromBytes(b.slice(32, 64));
+    const rx = new FP2(rax, rbx);
 
-    ra = BIG.fromBytes(b.slice(64, 96));
-    rb = BIG.fromBytes(b.slice(96, 128));
-    ry = new FP2(ra, rb);
+    const ray = BIG.fromBytes(b.slice(64, 96));
+    const rby = BIG.fromBytes(b.slice(96, 128));
+    const ry = new FP2(ray, rby);
 
-    P = new ECP2();
+    const P = new ECP2();
     P.setxy(rx, ry);
     return P;
 };
@@ -672,13 +666,11 @@ ECP2.fromBytes = function(b) {
   * @param x x-value
   */
 ECP2.RHS = function(x) {
-    var r, b;
-
-    r = new FP2(x);
+    const r = new FP2(x);
     r.sqr();
     r.mul(x);
 
-    b = new FP2(ROM_CURVE.CURVE_B_I);
+    const b = new FP2(ROM_CURVE.CURVE_B_I);
     b.div_ip();
     r.add(b);
 
@@ -697,20 +689,14 @@ ECP2.RHS = function(x) {
   * @this {ECP2}
   */
 ECP2.mul4 = function(Q, u) {
-    var W = new ECP2(),
-        P = new ECP2(),
-        T = [],
-        mt = new BIG(),
-        t = [],
-        w = [],
-        s = [],
-        i, j, k, nb, bt, pb;
 
-    for (i = 0; i < 4; i++) {
-        t[i] = new BIG(u[i]); t[i].norm();
-        //Q[i].affine();
+    const t = [];
+    for (let i = 0; i < 4; i++) {
+        t[i] = new BIG(u[i]);
+        t[i].norm();
     }
 
+    const T = [];
     T[0] = new ECP2(); T[0].copy(Q[0]); // Q[0]
     T[1] = new ECP2(); T[1].copy(T[0]); T[1].add(Q[1]); // Q[0]+Q[1]
     T[2] = new ECP2(); T[2].copy(T[0]); T[2].add(Q[2]); // Q[0]+Q[2]
@@ -721,51 +707,56 @@ ECP2.mul4 = function(Q, u) {
     T[7] = new ECP2(); T[7].copy(T[3]); T[7].add(Q[3]); // Q[0]+Q[1]+Q[2]+Q[3]
 
     // Make it odd
-    pb=1-t[0].parity();
+    const pb = 1 - t[0].parity();
     t[0].inc(pb);
     t[0].norm();
 
     // Number of bits
+    const mt = new BIG();
     mt.zero();
-    for (i=0;i<4;i++) {
+    for (let i = 0; i < 4; i++) {
         mt.or(t[i]);
     }
 
-    nb=1+mt.nbits();
+    const nb = 1 + mt.nbits();
 
     // Sign pivot
-    s[nb-1]=1;
-    for (i=0;i<nb-1;i++) {
+    const s = [];
+    s[nb - 1] = 1;
+    for (let i = 0; i < nb - 1; i++) {
         t[0].fshr(1);
-        s[i]=2*t[0].parity()-1;
+        s[i] = 2 * t[0].parity() - 1;
     }
 
     // Recoded exponent
-    for (i=0; i<nb; i++) {
-        w[i]=0;
-        k=1;
-        for (j=1; j<4; j++) {
-            bt=s[i]*t[j].parity();
+    const w = [];
+    for (let i = 0; i < nb; i++) {
+        w[i] = 0;
+        let k = 1;
+        for (let j = 1; j < 4; j++) {
+            const bt = s[i] * t[j].parity();
             t[j].fshr(1);
-            t[j].dec(bt>>1);
+            t[j].dec(bt >> 1);
             t[j].norm();
-            w[i]+=bt*k;
-            k*=2;
+            w[i] += bt * k;
+            k *= 2;
         }
     }
 
     // Main loop
-    P.select(T,2*w[nb-1]+1);
-    for (i=nb-2;i>=0;i--) {
+    const P = new ECP2();
+    const W = new ECP2();
+    P.select(T, 2 * w[nb - 1] + 1);
+    for (let i = nb - 2; i >= 0; i--) {
         P.dbl();
-        W.select(T,2*w[i]+s[i]);
+        W.select(T, 2 * w[i] + s[i]);
         P.add(W);
     }
 
     // apply correction
     W.copy(P);
     W.sub(Q[0]);
-    P.cmove(W,pb);
+    P.cmove(W, pb);
     P.affine();
     return P;
 };
@@ -773,8 +764,7 @@ ECP2.mul4 = function(Q, u) {
 
 /* return 1 if b===c, no branching */
 ECP2.teq = function(b, c) {
-    var x = b ^ c;
-    x -= 1; // if x=0, x now -1
+    const x = (b ^ c) -1;
     return ((x >> 31) & 1);
 };
 

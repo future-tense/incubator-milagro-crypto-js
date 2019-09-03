@@ -17,13 +17,13 @@
  under the License.
  */
 
-var BIG = require("./src/big").BIG;
-var FP = require("./src/fp");
-var FP2 = require("./src/fp2");
-var FP12 = require("./src/fp12");
-var ECP = require("./src/ecp");
-var ECP2 = require("./src/ecp2");
-var PAIR = require("./src/pair");
+const BIG = require("./src/big").BIG;
+const FP = require("./src/fp");
+const FP2 = require("./src/fp2");
+const FP12 = require("./src/fp12");
+const ECP = require("./src/ecp");
+const ECP2 = require("./src/ecp2");
+const PAIR = require("./src/pair");
 
 module.exports = {
     BIG: BIG,

@@ -17,10 +17,10 @@
     under the License.
 */
 
-var BIG = require("./big").BIG;
-var DBIG = require("./big").DBIG;
-var FP = require("./fp");
-var ROM_FIELD = require("./rom_field");
+const BIG = require("./big").BIG;
+const DBIG = require("./big").DBIG;
+const FP = require("./fp");
+const ROM_FIELD = require("./rom_field");
 
 /* Finite Field arithmetic  Fp^2 functions */
 
@@ -34,7 +34,7 @@ var ROM_FIELD = require("./rom_field");
   * @constructor
   * @this {FP2}
   */
-var FP2 = function(c, d) {
+const FP2 = function(c, d) {
     if (c instanceof FP2) {
         this.a = new FP(c.a);
         this.b = new FP(c.b);
@@ -81,7 +81,7 @@ FP2.prototype = {
      * @this {FP2}
      */
     isunity: function() {
-        var one = new FP(1);
+        const one = new FP(1);
         return (this.a.equals(one) && this.b.iszilch());
     },
 
@@ -214,14 +214,12 @@ FP2.prototype = {
      * negate this
      *
      * @this {FP2}
-     * @param x FP2 instance to be set to one
      */
     neg: function() {
-        var m = new FP(this.a),
-            t = new FP(0);
-
+        const m = new FP(this.a);
         m.add(this.b);
         m.neg();
+        const t = new FP(0);
         t.copy(m);
         t.add(this.b);
         this.b.copy(m);
@@ -257,7 +255,7 @@ FP2.prototype = {
      * @param x FP2 instance
      */
     sub: function(x) {
-        var m = new FP2(x);
+        const m = new FP2(x);
         m.neg();
         this.add(m);
     },
@@ -282,7 +280,7 @@ FP2.prototype = {
      * Multiplication of an FP2 by a small integer
      *
      * @this {FP2}
-     * @param s integer
+     * @param c integer
      */
     imul: function(c) {
         this.a.imul(c);
@@ -295,9 +293,9 @@ FP2.prototype = {
      * @this {FP2}
      */
     sqr: function() {
-        var w1 = new FP(this.a),
-            w3 = new FP(this.a),
-            mb = new FP(this.b);
+        const w1 = new FP(this.a);
+        const w3 = new FP(this.a);
+        const mb = new FP(this.b);
 
         w1.add(this.b);
         w3.add(this.a);
@@ -320,11 +318,10 @@ FP2.prototype = {
      * @param y FP2 instance, the multiplier
      */
     mul: function(y) {
-        var p = new BIG(0),
-            pR = new DBIG(0),
-            A, B, C, D, E, F;
-
+        const p = new BIG(0);
         p.rcopy(ROM_FIELD.Modulus);
+
+        const pR = new DBIG(0);
         pR.ucopy(p);
 
         if ((this.a.XES + this.b.XES) * (y.a.XES + y.b.XES) > FP.FEXCESS) {
@@ -337,19 +334,19 @@ FP2.prototype = {
             }
         }
 
-        A = BIG.mul(this.a.f, y.a.f);
-        B = BIG.mul(this.b.f, y.b.f);
+        const A = BIG.mul(this.a.f, y.a.f);
+        const B = BIG.mul(this.b.f, y.b.f);
 
-        C = new BIG(this.a.f);
-        D = new BIG(y.a.f);
+        const C = new BIG(this.a.f);
+        const D = new BIG(y.a.f);
 
         C.add(this.b.f);
         C.norm();
         D.add(y.b.f);
         D.norm();
 
-        E = BIG.mul(C, D);
-        F = new DBIG(0);
+        const E = BIG.mul(C, D);
+        const F = new DBIG(0);
         F.copy(A);
         F.add(B);
         B.rsub(pR);
@@ -372,14 +369,13 @@ FP2.prototype = {
      * @return true if this is QR
      */
     sqrt: function() {
-        var w1, w2;
 
         if (this.iszilch()) {
             return true;
         }
 
-        w1 = new FP(this.b);
-        w2 = new FP(this.a);
+        let w1 = new FP(this.b);
+        let w2 = new FP(this.a);
 
         w1.sqr();
         w2.sqr();
@@ -427,12 +423,10 @@ FP2.prototype = {
      * @this {FP2}
      */
     inverse: function() {
-        var w1, w2;
 
         this.norm();
-
-        w1 = new FP(this.a);
-        w2 = new FP(this.b);
+        const w1 = new FP(this.a);
+        const w2 = new FP(this.b);
 
         w1.sqr();
         w2.sqr();
@@ -460,7 +454,7 @@ FP2.prototype = {
      * @this {FP2}
      */
     times_i: function() {
-        var z = new FP(this.a); //z.copy(this.a);
+        const z = new FP(this.a);
         this.a.copy(this.b);
         this.a.neg();
         this.b.copy(z);
@@ -472,14 +466,13 @@ FP2.prototype = {
      * @this {FP2}
      */
     mul_ip: function() {
-        var t = new FP2(this),
-            z = new FP(this.a);
+        const t = new FP2(this);
+        const z = new FP(this.a);
 
         this.a.copy(this.b);
         this.a.neg();
         this.b.copy(z);
         this.add(t);
-        //      this.norm();
     },
 
     /**
@@ -488,8 +481,8 @@ FP2.prototype = {
      * @this {FP2}
      */
     div_ip2: function() {
-        var t = new FP2(0);
         this.norm();
+        const t = new FP2(0);
         t.a.copy(this.a);
         t.a.add(this.b);
         t.b.copy(this.b);
@@ -504,8 +497,8 @@ FP2.prototype = {
      * @this {FP2}
      */
     div_ip: function() {
-        var t = new FP2(0);
         this.norm();
+        const t = new FP2(0);
         t.a.copy(this.a);
         t.a.add(this.b);
         t.b.copy(this.b);
@@ -523,15 +516,13 @@ FP2.prototype = {
      */
     pow: function(e) {
         this.norm();
-
-        var r = new FP2(1),
-            x = new FP2(this),
-            bt;
-
         e.norm();
 
+        const x = new FP2(this);
+        const r = new FP2(1);
+
         for (;;) {
-            bt = e.parity();
+            const bt = e.parity();
             e.fshr(1);
 
             if (bt === 1) {
@@ -545,7 +536,6 @@ FP2.prototype = {
         }
 
         r.reduce();
-
         return r;
     }
 };

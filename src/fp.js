@@ -20,9 +20,9 @@
 /* Finite Field arithmetic */
 /* AMCL mod p functions */
 
-var BIG = require("./big").BIG;
-var DBIG = require("./big").DBIG;
-var ROM_FIELD = require("./rom_field");
+const BIG = require("./big").BIG;
+const DBIG = require("./big").DBIG;
+const ROM_FIELD = require("./rom_field");
 
 "use strict";
 
@@ -33,7 +33,7 @@ var ROM_FIELD = require("./rom_field");
   * @this {FP}
   * @param x FP / BIG instance
   */
-var FP = function(x) {
+const FP = function(x) {
     if (x instanceof FP) {
         this.f = new BIG(x.f);
         this.XES = x.XES;
@@ -113,9 +113,8 @@ FP.prototype = {
      */
     cswap: function(b, d) {
         this.f.cswap(b.f, d);
-        var t, c = d;
-        c = ~(c - 1);
-        t = c & (this.XES ^ b.XES);
+        const c = ~(d - 1);
+        const t = c & (this.XES ^ b.XES);
         this.XES ^= t;
         b.XES ^= t;
     },
@@ -128,10 +127,7 @@ FP.prototype = {
      * @param d copy depends on this value
      */
     cmove: function(b, d) {
-        var c = d;
-
-        c = ~(c - 1);
-
+        const c = ~(d - 1);
         this.f.cmove(b.f, d);
         this.XES ^= (this.XES ^ b.XES) & c;
     },
@@ -142,12 +138,10 @@ FP.prototype = {
      * @this {FP}
      */
     nres: function() {
-        var r, d;
-
-        r = new BIG();
+        const r = new BIG();
         r.rcopy(ROM_FIELD.R2modp);
 
-        d = BIG.mul(this.f, r);
+        const d = BIG.mul(this.f, r);
         this.f.copy(FP.mod(d));
         this.XES = 2;
 
@@ -160,14 +154,11 @@ FP.prototype = {
      * @this {FP}
      */
     redc: function() {
-        var r = new BIG(0),
-            d, w;
-
+        const r = new BIG(0);
         r.copy(this.f);
-
-        d = new DBIG(0);
+        const d = new DBIG(0);
         d.hcopy(this.f);
-        w = FP.mod(d);
+        const w = FP.mod(d);
         r.copy(w);
         return r;
     },
@@ -178,8 +169,7 @@ FP.prototype = {
      * @this {FP}
      */
     toString: function() {
-        var s = this.redc().toString();
-        return s;
+        return this.redc().toString();
     },
 
     /**
@@ -188,7 +178,8 @@ FP.prototype = {
      * @this {FP}
      */
     iszilch: function() {
-        var c=new FP(0); c.copy(this);
+        const c = new FP(0);
+        c.copy(this);
         c.reduce();
         return c.f.iszilch();
     },
@@ -206,28 +197,31 @@ FP.prototype = {
      * @this {FP}
      */
     reduce: function() {
-        var q,carry,sr,sb,m = new BIG(0);
+
+        const m = new BIG(0);
         m.rcopy(ROM_FIELD.Modulus);
-        var r = new BIG(0);
+
+        const r = new BIG(0);
         r.rcopy(ROM_FIELD.Modulus);
         this.f.norm();
 
-        if (this.XES>16) {
-            q=FP.quo(this.f,m);
-            carry=r.pmul(q);
-            r.w[BIG.NLEN-1]+=(carry<<BIG.BASEBITS); // correction - put any carry out back in again
+        let sb;
+        if (this.XES > 16) {
+            const q = FP.quo(this.f, m);
+            const carry = r.pmul(q);
+            r.w[BIG.NLEN - 1] += (carry << BIG.BASEBITS); // correction - put any carry out back in again
             this.f.sub(r);
             this.f.norm();
-            sb=2;
+            sb = 2;
         } else {
-            sb=FP.logb2(this.XES-1);
+            sb = FP.logb2(this.XES - 1);
         }
         m.fshl(sb);
 
-        while (sb>0) {
+        while (sb > 0) {
             // constant time...
-            sr=BIG.ssn(r,this.f,m);  // optimized combined shift, subtract and norm
-            this.f.cmove(r,1-sr);
+            const sr = BIG.ssn(r, this.f, m);  // optimized combined shift, subtract and norm
+            this.f.cmove(r, 1 - sr);
             sb--;
         }
 
@@ -260,13 +254,11 @@ FP.prototype = {
      * @param b FP number, the multiplier
      */
     mul: function(b) {
-        var d;
-
         if (this.XES * b.XES > FP.FEXCESS) {
             this.reduce();
         }
 
-        d = BIG.mul(this.f, b.f);
+        const d = BIG.mul(this.f, b.f);
         this.f.copy(FP.mod(d));
         this.XES = 2;
 
@@ -277,12 +269,11 @@ FP.prototype = {
      * Multiplication of an FP by a small integer
      *
      * @this {FP}
-     * @param s integer
+     * @param c integer
      */
     imul: function(c) {
-        var s = false,
-            d, n;
 
+        let s = false;
         if (c < 0) {
             c = -c;
             s = true;
@@ -292,7 +283,7 @@ FP.prototype = {
             this.f.pmul(c);
             this.XES *= c;
         } else {
-            n = new FP(c);
+            const n = new FP(c);
             this.mul(n);
         }
 
@@ -309,14 +300,12 @@ FP.prototype = {
      * @this {FP}
      */
     sqr: function() {
-        var d, t;
-
         if (this.XES * this.XES > FP.FEXCESS) {
             this.reduce();
         }
 
-        d = BIG.sqr(this.f);
-        t = FP.mod(d);
+        const d = BIG.sqr(this.f);
+        const t = FP.mod(d);
         this.f.copy(t);
         this.XES = 2;
 
@@ -339,15 +328,12 @@ FP.prototype = {
      * negate this
      *
      * @this {FP}
-     * @param x FP instance to be set to one
      */
     neg: function() {
-        var m = new BIG(0),
-            sb;
-
+        let m = new BIG(0);
         m.rcopy(ROM_FIELD.Modulus);
 
-        sb = FP.logb2(this.XES - 1);
+        const sb = FP.logb2(this.XES - 1);
 
         m.fshl(sb);
         this.XES = (1 << sb)+1;
@@ -364,11 +350,10 @@ FP.prototype = {
      * subtraction of two FPs
      *
      * @this {FP}
-     * @param x FP instance
+     * @param b FP instance
      */
     sub: function(b) {
-        var n = new FP(0);
-
+        const n = new FP(0);
         n.copy(b);
         n.neg();
         this.add(n);
@@ -377,8 +362,7 @@ FP.prototype = {
     },
 
     rsub: function(b) {
-        var n = new FP(0);
-
+        const n = new FP(0);
         n.copy(this);
         n.neg();
         this.copy(b);
@@ -391,12 +375,11 @@ FP.prototype = {
      * @this {FP}
      */
     div2: function() {
-        var p;
 
         if (this.f.parity() === 0) {
             this.f.fshr(1);
         } else {
-            p = new BIG(0);
+            const p = new BIG(0);
             p.rcopy(ROM_FIELD.Modulus);
 
             this.f.add(p);
@@ -417,51 +400,51 @@ FP.prototype = {
      */
 
     fpow: function() {
-        var i,j,k,bw,w,c,nw,lo,m,n;
-        var xp=[];
-        var ac=[1,2,3,6,12,15,30,60,120,240,255];
+
+        const ac = [1, 2, 3, 6, 12, 15, 30, 60, 120, 240, 255];
+
         // phase 1
 
-        xp[0]=new FP(this);	// 1
-        xp[1]=new FP(this); xp[1].sqr(); // 2
-        xp[2]=new FP(xp[1]); xp[2].mul(this);  //3
-        xp[3]=new FP(xp[2]); xp[3].sqr();  // 6
-        xp[4]=new FP(xp[3]); xp[4].sqr();  // 12
-        xp[5]=new FP(xp[4]); xp[5].mul(xp[2]);  // 15
-        xp[6]=new FP(xp[5]); xp[6].sqr();  // 30
-        xp[7]=new FP(xp[6]); xp[7].sqr();  // 60
-        xp[8]=new FP(xp[7]); xp[8].sqr();  // 120
-        xp[9]=new FP(xp[8]); xp[9].sqr();  // 240
-        xp[10]=new FP(xp[9]); xp[10].mul(xp[5]);  // 255
+        const xp = [];
+        xp[0] = new FP(this);	// 1
+        xp[1] = new FP(this); xp[1].sqr(); // 2
+        xp[2] = new FP(xp[1]); xp[2].mul(this);  //3
+        xp[3] = new FP(xp[2]); xp[3].sqr();  // 6
+        xp[4] = new FP(xp[3]); xp[4].sqr();  // 12
+        xp[5] = new FP(xp[4]); xp[5].mul(xp[2]);  // 15
+        xp[6] = new FP(xp[5]); xp[6].sqr();  // 30
+        xp[7] = new FP(xp[6]); xp[7].sqr();  // 60
+        xp[8] = new FP(xp[7]); xp[8].sqr();  // 120
+        xp[9] = new FP(xp[8]); xp[9].sqr();  // 240
+        xp[10] = new FP(xp[9]); xp[10].mul(xp[5]);  // 255
 
+        const n = FP.MODBITS - 2;
+        const c = (ROM_FIELD.MConst + 3) / 4;
 
-        n=FP.MODBITS;
-        n-=2;
-        c=(ROM_FIELD.MConst+3)/4;
-
-        bw=0; w=1;
-        while (w<c) {
+        let bw = 0;
+        let w = 1;
+        while (w < c) {
             w *= 2;
             bw += 1;
         }
-        k=w-c;
 
-        i=10;
-        var key=new FP(0);
+        let k = w - c;
+        let i = 10;
+        const key = new FP(0);
         if (k !== 0) {
-            while (ac[i]>k) {
+            while (ac[i] > k) {
                 i--;
             }
             key.copy(xp[i]);
-            k-=ac[i];
+            k -= ac[i];
         }
         while (k !== 0) {
             i--;
-            if (ac[i]>k) {
+            if (ac[i] > k) {
                 continue;
             }
             key.mul(xp[i]);
-            k-=ac[i];
+            k -= ac[i];
         }
 
         // phase 2
@@ -469,29 +452,33 @@ FP.prototype = {
         xp[2].copy(xp[5]);
         xp[3].copy(xp[10]);
 
-        j=3; m=8;
-        nw=n-bw;
-        var t=new FP(0);
-        while (2*m<nw) {
+        let j = 3;
+        let m = 8;
+        const nw = n - bw;
+        const t = new FP(0);
+        while (2 * m < nw) {
             t.copy(xp[j++]);
-            for (i=0;i<m;i++) {
+            for (let i = 0; i < m; i++) {
                 t.sqr();
             }
             xp[j].copy(xp[j-1]);
             xp[j].mul(t);
-            m*=2;
+            m *= 2;
         }
-        lo=nw-m;
-        var r=new FP(xp[j]);
 
-        while (lo!==0) {
-            m/=2; j--;
-            if (lo<m) {
+        const r = new FP(xp[j]);
+
+        let lo = nw - m;
+        while (lo !== 0) {
+            m /= 2;
+            j--;
+            if (lo < m) {
                 continue;
             }
-            lo-=m;
+
+            lo -= m;
             t.copy(r);
-            for (i=0;i<m;i++) {
+            for (i = 0; i < m; i++) {
                 t.sqr();
             }
             r.copy(t);
@@ -499,8 +486,8 @@ FP.prototype = {
         }
 
         // phase 3
-        if (bw!==0) {
-            for (i=0;i<bw;i++ ) {
+        if (bw !== 0) {
+            for (let i = 0; i < bw; i++ ) {
                 r.sqr();
             }
             r.mul(key);
@@ -516,9 +503,10 @@ FP.prototype = {
      */
     inverse: function() {
 
-        var m2=new BIG(0);
+        const m2 = new BIG(0);
         m2.rcopy(ROM_FIELD.Modulus);
-        m2.dec(2); m2.norm();
+        m2.dec(2);
+        m2.norm();
         this.copy(this.pow(m2));
         return this;
     },
@@ -527,19 +515,18 @@ FP.prototype = {
      * Tests for equality of two FP instances
      *
      * @this {FP}
-     * @param x FP instance to compare
+     * @param a FP instance to compare
      */
     equals: function(a) {
-        var ft=new FP(0); ft.copy(this);
-        var sd=new FP(0); sd.copy(a);
+        const ft = new FP(0);
+        ft.copy(this);
         ft.reduce();
+
+        const sd = new FP(0);
+        sd.copy(a);
         sd.reduce();
 
-        if (BIG.comp(ft.f, sd.f) === 0) {
-            return true;
-        }
-
-        return false;
+        return (BIG.comp(ft.f, sd.f) === 0);
     },
 
     /**
@@ -549,29 +536,30 @@ FP.prototype = {
      * @param e BIG instance exponent
      */
     pow: function(e) {
-        var i,w=[],
-            tb=[],
-            t=new BIG(e),
-            nb, lsbs, r;
-        this.norm();
-        t.norm();
-        nb= 1 + Math.floor((t.nbits() + 3) / 4);
 
-        for (i=0;i<nb;i++) {
-            lsbs=t.lastbits(4);
+        this.norm();
+        const t = new BIG(e);
+        t.norm();
+        const nb = 1 + Math.floor((t.nbits() + 3) / 4);
+
+        const w = [];
+        for (let i = 0; i < nb; i++) {
+            const lsbs = t.lastbits(4);
             t.dec(lsbs);
             t.norm();
-            w[i]=lsbs;
+            w[i] = lsbs;
             t.fshr(4);
         }
-        tb[0]=new FP(1);
-        tb[1]=new FP(this);
-        for (i=2;i<16;i++) {
-            tb[i]=new FP(tb[i-1]);
+        const tb = [];
+        tb[0] = new FP(1);
+        tb[1] = new FP(this);
+        for (let i = 2; i < 16; i++) {
+            tb[i] = new FP(tb[i - 1]);
             tb[i].mul(this);
         }
-        r=new FP(tb[w[nb-1]]);
-        for (i=nb-2;i>=0;i--) {
+
+        const r = new FP(tb[w[nb - 1]]);
+        for (let i = nb - 2; i >= 0; i--) {
             r.sqr();
             r.sqr();
             r.sqr();
@@ -588,11 +576,9 @@ FP.prototype = {
      * @this {FP}
      */
     jacobi: function() {
-        var p = new BIG(0),
-            w = this.redc();
-
+        const p = new BIG(0);
         p.rcopy(ROM_FIELD.Modulus);
-
+        const w = this.redc();
         return w.jacobi(p);
     },
 
@@ -603,7 +589,7 @@ FP.prototype = {
      */
     sqrt: function() {
         this.reduce();
-        var b = new BIG(0);
+        const b = new BIG(0);
         b.rcopy(ROM_FIELD.Modulus);
         b.inc(1);
         b.norm();
@@ -613,8 +599,6 @@ FP.prototype = {
 };
 
 FP.logb2 = function(v) {
-    var r;
-
     v |= v >>> 1;
     v |= v >>> 2;
     v |= v >>> 4;
@@ -623,22 +607,24 @@ FP.logb2 = function(v) {
 
     v = v - ((v >>> 1) & 0x55555555);
     v = (v & 0x33333333) + ((v >>> 2) & 0x33333333);
-    r = ((v + (v >>> 4) & 0xF0F0F0F) * 0x1010101) >>> 24;
-
-    return r;
+    return ((v + (v >>> 4) & 0xF0F0F0F) * 0x1010101) >>> 24;
 };
 
 FP.quo = function(n,m) {
-    var num,den,hb=BIG.CHUNK>>1;
+    let num;
+    let den;
+
+    const hb = BIG.CHUNK >> 1;
     if (FP.TBITS < hb) {
-        var sh=hb-FP.TBITS;
-        num=(n.w[BIG.NLEN-1]<<sh)|(n.w[BIG.NLEN-2]>>(BIG.BASEBITS-sh));
-        den=(m.w[BIG.NLEN-1]<<sh)|(m.w[BIG.NLEN-2]>>(BIG.BASEBITS-sh));
+        const sh = hb - FP.TBITS;
+        num = (n.w[BIG.NLEN - 1] << sh) | (n.w[BIG.NLEN - 2] >> (BIG.BASEBITS - sh));
+        den = (m.w[BIG.NLEN - 1] << sh) | (m.w[BIG.NLEN - 2] >> (BIG.BASEBITS - sh));
     } else {
-        num=n.w[BIG.NLEN-1];
-        den=m.w[BIG.NLEN-1];
+        num = n.w[BIG.NLEN - 1];
+        den = m.w[BIG.NLEN - 1];
     }
-    return Math.floor(num/(den+1));
+
+    return Math.floor(num / (den + 1));
 };
 
 /**
@@ -647,12 +633,10 @@ FP.quo = function(n,m) {
   * @this {FP}
   */
 FP.mod = function(d) {
-    var b = new BIG(0),
-        i, t, v, tw, tt, lo, carry, m, dd;
-
-    m = new BIG(0);
+    const m = new BIG(0);
     m.rcopy(ROM_FIELD.Modulus);
 
+    const b = new BIG(0);
     b.copy(BIG.monty(m, ROM_FIELD.MConst, d));
 
     return b;

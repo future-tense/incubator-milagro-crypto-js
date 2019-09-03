@@ -27,7 +27,8 @@
  * @constructor
  * @this {BIG}
  */
-var BIG = function(x) {
+
+const BIG = function(x) {
     this.w = new Array(BIG.NLEN);
 
     switch (typeof(x)) {
@@ -64,9 +65,7 @@ BIG.prototype = {
      * @return BIG number
      */
     zero: function() {
-        var i;
-
-        for (i = 0; i < BIG.NLEN; i++) {
+        for (let i = 0; i < BIG.NLEN; i++) {
             this.w[i] = 0;
         }
 
@@ -80,10 +79,9 @@ BIG.prototype = {
      * @return BIG number
      */
     one: function() {
-        var i;
 
         this.w[0] = 1;
-        for (i = 1; i < BIG.NLEN; i++) {
+        for (let i = 1; i < BIG.NLEN; i++) {
             this.w[i] = 0;
         }
 
@@ -102,12 +100,10 @@ BIG.prototype = {
      * test for zero
      *
      * @this {BIG}
-     * @return True if zero
+     * @return boolean - True if zero
      */
     iszilch: function() {
-        var i;
-
-        for (i = 0; i < BIG.NLEN; i++) {
+        for (let i = 0; i < BIG.NLEN; i++) {
             if (this.w[i] !== 0) {
                 return false;
             }
@@ -120,22 +116,16 @@ BIG.prototype = {
      * test for unity
      *
      * @this {BIG}
-     * @return True if one
+     * @return boolean - True if one
      */
     isunity: function() {
-        var i;
-
-        for (i = 1; i < BIG.NLEN; i++) {
+        for (let i = 1; i < BIG.NLEN; i++) {
             if (this.w[i] !== 0) {
                 return false;
             }
         }
 
-        if (this.w[0] !== 1) {
-            return false;
-        }
-
-        return true;
+        return (this.w[0] === 1);
     },
 
     /**
@@ -146,13 +136,9 @@ BIG.prototype = {
      * @parameter d BIG number
      */
     cswap: function(b, d) {
-        var c = d,
-            t, i;
-
-        c = ~(c - 1);
-
-        for (i = 0; i < BIG.NLEN; i++) {
-            t = c & (this.w[i] ^ b.w[i]);
+        const c = ~(d - 1);
+        for (let i = 0; i < BIG.NLEN; i++) {
+            const t = c & (this.w[i] ^ b.w[i]);
             this.w[i] ^= t;
             b.w[i] ^= t;
         }
@@ -166,12 +152,8 @@ BIG.prototype = {
      * @parameter d BIG number
      */
     cmove: function(b, d) {
-        var c = d,
-            i;
-
-        c = ~(c - 1);
-
-        for (i = 0; i < BIG.NLEN; i++) {
+        const c = ~(d - 1);
+        for (let i = 0; i < BIG.NLEN; i++) {
             this.w[i] ^= (this.w[i] ^ b.w[i]) & c;
         }
     },
@@ -181,12 +163,10 @@ BIG.prototype = {
      *
      * @this {BIG}
      * @parameter y BIG number
-     * @return The BIG object
+     * @return BIG - The BIG object
      */
     copy: function(y) {
-        var i;
-
-        for (i = 0; i < BIG.NLEN; i++) {
+        for (let i = 0; i < BIG.NLEN; i++) {
             this.w[i] = y.w[i];
         }
 
@@ -198,12 +178,10 @@ BIG.prototype = {
      *
      * @this {BIG}
      * @parameter y BIG number
-     * @return The new BIG object
+     * @return BIG The new BIG object
      */
     hcopy: function(y) {
-        var i;
-
-        for (i = 0; i < BIG.NLEN; i++) {
+        for (let i = 0; i < BIG.NLEN; i++) {
             this.w[i] = y.w[i];
         }
 
@@ -215,12 +193,10 @@ BIG.prototype = {
      *
      * @this {BIG}
      * @parameter y BIG number in ROM
-     * @return The BIG object
+     * @return BIG - The BIG object
      */
     rcopy: function(y) {
-        var i;
-
-        for (i = 0; i < BIG.NLEN; i++) {
+        for (let i = 0; i < BIG.NLEN; i++) {
             this.w[i] = y[i];
         }
 
@@ -242,11 +218,9 @@ BIG.prototype = {
      * @return BIG number
      */
     norm: function() {
-        var carry = 0,
-            d, i;
-
-        for (i = 0; i < BIG.NLEN - 1; i++) {
-            d = this.w[i] + carry;
+        let carry = 0;
+        for (let i = 0; i < BIG.NLEN - 1; i++) {
+            const d = this.w[i] + carry;
             this.w[i] = d & BIG.BMASK;
             carry = d >> BIG.BASEBITS;
         }
@@ -264,11 +238,10 @@ BIG.prototype = {
      * @return r The shifted out part
      */
     fshr: function(k) {
-        var r, i;
 
-        r = this.w[0] & ((1 << k) - 1); /* shifted out part */
+        const r = this.w[0] & ((1 << k) - 1); /* shifted out part */
 
-        for (i = 0; i < BIG.NLEN - 1; i++) {
+        for (let i = 0; i < BIG.NLEN - 1; i++) {
             this.w[i] = (this.w[i] >> k) | ((this.w[i + 1] << (BIG.BASEBITS - k)) & BIG.BMASK);
         }
 
@@ -285,17 +258,16 @@ BIG.prototype = {
      * @return BIG number
      */
     shr: function(k) {
-        var n = k % BIG.BASEBITS,
-            m = Math.floor(k / BIG.BASEBITS),
-            i;
+        const n = k % BIG.BASEBITS;
+        const m = Math.floor(k / BIG.BASEBITS);
 
-        for (i = 0; i < BIG.NLEN - m - 1; i++) {
+        for (let i = 0; i < BIG.NLEN - m - 1; i++) {
             this.w[i] = (this.w[m + i] >> n) | ((this.w[m + i + 1] << (BIG.BASEBITS - n)) & BIG.BMASK);
         }
 
         this.w[BIG.NLEN - m - 1] = this.w[BIG.NLEN - 1] >> n;
 
-        for (i = BIG.NLEN - m; i < BIG.NLEN; i++) {
+        for (let i = BIG.NLEN - m; i < BIG.NLEN; i++) {
             this.w[i] = 0;
         }
 
@@ -310,11 +282,10 @@ BIG.prototype = {
      * @return r The shifted out part
      */
     fshl: function(k) {
-        var i;
 
         this.w[BIG.NLEN - 1] = ((this.w[BIG.NLEN - 1] << k)) | (this.w[BIG.NLEN - 2] >> (BIG.BASEBITS - k));
 
-        for (i = BIG.NLEN - 2; i > 0; i--) {
+        for (let i = BIG.NLEN - 2; i > 0; i--) {
             this.w[i] = ((this.w[i] << k) & BIG.BMASK) | (this.w[i - 1] >> (BIG.BASEBITS - k));
         }
 
@@ -331,9 +302,8 @@ BIG.prototype = {
      * @return BIG number
      */
     shl: function(k) {
-        var n = k % BIG.BASEBITS,
-            m = Math.floor(k / BIG.BASEBITS),
-            i;
+        const n = k % BIG.BASEBITS;
+        const m = Math.floor(k / BIG.BASEBITS);
 
         this.w[BIG.NLEN - 1] = (this.w[BIG.NLEN - 1 - m] << n);
 
@@ -341,13 +311,13 @@ BIG.prototype = {
             this.w[BIG.NLEN - 1] |= (this.w[BIG.NLEN - m - 2] >> (BIG.BASEBITS - n));
         }
 
-        for (i = BIG.NLEN - 2; i > m; i--) {
+        for (let i = BIG.NLEN - 2; i > m; i--) {
             this.w[i] = ((this.w[i - m] << n) & BIG.BMASK) | (this.w[i - m - 1] >> (BIG.BASEBITS - n));
         }
 
         this.w[m] = (this.w[0] << n) & BIG.BMASK;
 
-        for (i = 0; i < m; i++) {
+        for (let i = 0; i < m; i++) {
             this.w[i] = 0;
         }
 
@@ -361,12 +331,12 @@ BIG.prototype = {
      * @return The number of bigs in BIG object
      */
     nbits: function() {
-        var k = BIG.NLEN - 1,
-            bts, c;
 
-        var t=new BIG(0); t.copy(this);
+        const t = new BIG(0);
+        t.copy(this);
         t.norm();
 
+        let k = BIG.NLEN - 1;
         while (k >= 0 && t.w[k] === 0) {
             k--;
         }
@@ -375,8 +345,8 @@ BIG.prototype = {
             return 0;
         }
 
-        bts = BIG.BASEBITS * k;
-        c = t.w[k];
+        let bts = BIG.BASEBITS * k;
+        let c = t.w[k];
 
         while (c !== 0) {
             c = Math.floor(c / 2);
@@ -393,10 +363,8 @@ BIG.prototype = {
      * @return string representation of a BIG number
      */
     toString: function() {
-        var s = "",
-            len = this.nbits(),
-            b, i;
 
+        let len = this.nbits();
         if (len % 4 === 0) {
             len = Math.floor(len / 4);
         } else {
@@ -408,8 +376,9 @@ BIG.prototype = {
             len = BIG.MODBYTES * 2;
         }
 
-        for (i = len - 1; i >= 0; i--) {
-            b = new BIG(0);
+        let s = "";
+        for (let i = len - 1; i >= 0; i--) {
+            const b = new BIG(0);
             b.copy(this);
             b.shr(i * 4);
             s += (b.w[0] & 15).toString(16);
@@ -423,12 +392,11 @@ BIG.prototype = {
      *
      * @this {BIG}
      * @parameter y BIG object
-     * @return this+=y
+     * @return BIG - this+=y
      */
     add: function(y) {
-        var i;
 
-        for (i = 0; i < BIG.NLEN; i++) {
+        for (let i = 0; i < BIG.NLEN; i++) {
             this.w[i] += y.w[i];
         }
 
@@ -441,12 +409,10 @@ BIG.prototype = {
      *
      * @this {BIG}
      * @parameter y BIG object
-     * @return this|=y
+     * @return BIG - this|=y
      */
     or: function(y) {
-        var i;
-
-        for (i = 0; i < BIG.NLEN; i++) {
+        for (let i = 0; i < BIG.NLEN; i++) {
             this.w[i] |= y.w[i];
         }
 
@@ -458,13 +424,11 @@ BIG.prototype = {
      *
      * @this {BIG}
      * @parameter x BIG object
-     * @return this+x
+     * @return BIG this+x
      */
     plus: function(x) {
-        var s = new BIG(0),
-            i;
-
-        for (i = 0; i < BIG.NLEN; i++) {
+        const s = new BIG(0);
+        for (let i = 0; i < BIG.NLEN; i++) {
             s.w[i] = this.w[i] + x.w[i];
         }
 
@@ -476,7 +440,7 @@ BIG.prototype = {
      *
      * @this {BIG}
      * @parameter i Integer to add
-     * @return this+=i
+     * @return BIG this+=i
      */
     inc: function(i) {
         this.norm();
@@ -489,12 +453,10 @@ BIG.prototype = {
      *
      * @this {BIG}
      * @parameter y BIG object
-     * @return this-=y
+     * @return BIG this-=y
      */
     sub: function(y) {
-        var i;
-
-        for (i = 0; i < BIG.NLEN; i++) {
+        for (let i = 0; i < BIG.NLEN; i++) {
             this.w[i] -= y.w[i];
         }
 
@@ -506,12 +468,10 @@ BIG.prototype = {
      *
      * @this {BIG}
      * @parameter x BIG object
-     * @return this=x-this
+     * @return BIG this=x-this
      */
     rsub: function(x) {
-        var i;
-
-        for (i = 0; i < BIG.NLEN; i++) {
+        for (let i = 0; i < BIG.NLEN; i++) {
             this.w[i] = x.w[i] - this.w[i];
         }
 
@@ -523,7 +483,7 @@ BIG.prototype = {
      *
      * @this {BIG}
      * @parameter i Integer to subtract
-     * @return this-=i
+     * @return BIG this-=i
      */
     dec: function(i) {
         this.norm();
@@ -539,10 +499,8 @@ BIG.prototype = {
      * @return New BIG object
      */
     minus: function(x) {
-        var d = new BIG(0),
-            i;
-
-        for (i = 0; i < BIG.NLEN; i++) {
+        const d = new BIG(0);
+        for (let i = 0; i < BIG.NLEN; i++) {
             d.w[i] = this.w[i] - x.w[i];
         }
 
@@ -557,9 +515,7 @@ BIG.prototype = {
      * @return this*c
      */
     imul: function(c) {
-        var i;
-
-        for (i = 0; i < BIG.NLEN; i++) {
+        for (let i = 0; i < BIG.NLEN; i++) {
             this.w[i] *= c;
         }
 
@@ -572,13 +528,11 @@ BIG.prototype = {
      * @this {BIG}
      */
     tobytearray: function(b, n) {
-        var c = new BIG(0),
-            i;
-
+        const c = new BIG(0);
         c.copy(this);
         c.norm();
 
-        for (i = BIG.MODBYTES - 1; i >= 0; i--) {
+        for (let i = BIG.MODBYTES - 1; i >= 0; i--) {
             b[i + n] = c.w[0] & 0xff;
             c.fshr(8);
         }
@@ -601,7 +555,7 @@ BIG.prototype = {
      * @this {BIG}
      */
     muladd: function(x, y, c, i) {
-        var prod = x * y + c + this.w[i];
+        const prod = x * y + c + this.w[i];
         this.w[i] = prod & BIG.BMASK;
         return ((prod - this.w[i]) * BIG.MODINV);
     },
@@ -611,14 +565,12 @@ BIG.prototype = {
      *
      * @this {BIG}
      * @parameter c large integer
-     * @return carry value
+     * @return number - carry value
      */
     pmul: function(c) {
-        var carry = 0,
-            ak, i;
-
-        for (i = 0; i < BIG.NLEN; i++) {
-            ak = this.w[i];
+        let carry = 0;
+        for (let i = 0; i < BIG.NLEN; i++) {
+            const ak = this.w[i];
             this.w[i] = 0;
             carry = this.muladd(ak, c, carry, i);
         }
@@ -634,11 +586,9 @@ BIG.prototype = {
      * @return DBIG object
      */
     pxmul: function(c) {
-        var m = new DBIG(0),
-            carry = 0,
-            j;
-
-        for (j = 0; j < BIG.NLEN; j++) {
+        const m = new DBIG(0);
+        let carry = 0;
+        for (let j = 0; j < BIG.NLEN; j++) {
             carry = m.muladd(this.w[j], c, carry, j);
         }
 
@@ -651,17 +601,15 @@ BIG.prototype = {
      *  divide by 3
      *
      * @this {BIG}
-     * @return carry value
+     * @return number - carry value
      */
     div3: function() {
-        var carry = 0,
-            ak, base, i;
-
         this.norm();
-        base = (1 << BIG.BASEBITS);
+        const base = (1 << BIG.BASEBITS);
 
-        for (i = BIG.NLEN - 1; i >= 0; i--) {
-            ak = (carry * base + this.w[i]);
+        let carry = 0;
+        for (let i = BIG.NLEN - 1; i >= 0; i--) {
+            const ak = (carry * base + this.w[i]);
             this.w[i] = Math.floor(ak / 3);
             carry = ak % 3;
         }
@@ -676,14 +624,13 @@ BIG.prototype = {
      * @return BIG object
      */
     mod2m: function(m) {
-        var i, wd, bt, msk;
 
-        wd = Math.floor(m / BIG.BASEBITS);
-        bt = m % BIG.BASEBITS;
-        msk = (1 << bt) - 1;
+        const wd = Math.floor(m / BIG.BASEBITS);
+        const bt = m % BIG.BASEBITS;
+        const msk = (1 << bt) - 1;
         this.w[wd] &= msk;
 
-        for (i = wd + 1; i < BIG.NLEN; i++) {
+        for (let i = wd + 1; i < BIG.NLEN; i++) {
             this.w[i] = 0;
         }
     },
@@ -695,24 +642,23 @@ BIG.prototype = {
      * @return BIG object
      */
     invmod2m: function() {
-        var U = new BIG(0),
-            b = new BIG(0),
-            c = new BIG(0),
-            i, t1, t2;
+        const U = new BIG(0);
+        let b = new BIG(0);
+        const c = new BIG(0);
 
         U.inc(BIG.invmod256(this.lastbits(8)));
 
-        for (i = 8; i < BIG.BIGBITS; i <<= 1) {
+        for (let i = 8; i < BIG.BIGBITS; i <<= 1) {
             U.norm();
             b.copy(this);
             b.mod2m(i);
-            t1 = BIG.smul(U, b);
+            const t1 = BIG.smul(U, b);
             t1.shr(i);
             c.copy(this);
             c.shr(i);
             c.mod2m(i);
 
-            t2 = BIG.smul(U, c);
+            const t2 = BIG.smul(U, c);
             t2.mod2m(i);
             t1.add(t2);
             t1.norm();
@@ -737,24 +683,25 @@ BIG.prototype = {
      * reduce this mod m
      *
      * @this {BIG}
-     * @return BIG object
      */
     mod: function(m1) {
-        var k = 0,
-            r = new BIG(0);
-        var m=new BIG(0); m.copy(m1);
-
         this.norm();
+
+        const m = new BIG(0);
+        m.copy(m1);
 
         if (BIG.comp(this, m) < 0) {
             return;
         }
 
+
+        let k = 0;
         do {
             m.fshl(1);
             k++;
         } while (BIG.comp(this, m) >= 0);
 
+        const r = new BIG(0);
         while (k > 0) {
             m.fshr(1);
 
@@ -762,7 +709,6 @@ BIG.prototype = {
             r.sub(m);
             r.norm();
             this.cmove(r, (1 - ((r.w[BIG.NLEN - 1] >> (BIG.CHUNK - 1)) & 1)));
-
             k--;
         }
     },
@@ -775,23 +721,24 @@ BIG.prototype = {
      * @return BIG number
      */
     div: function(m1) {
-        var k = 0,
-            d = 0,
-            e = new BIG(1),
-            b = new BIG(0),
-            r = new BIG(0);
-        var m=new BIG(0); m.copy(m1);
+
+        const m = new BIG(0);
+        m.copy(m1);
 
         this.norm();
+        const b = new BIG(0);
         b.copy(this);
         this.zero();
 
+        const e = new BIG(1);
+        let k = 0;
         while (BIG.comp(b, m) >= 0) {
             e.fshl(1);
             m.fshl(1);
             k++;
         }
 
+        const r = new BIG(0);
         while (k > 0) {
             m.fshr(1);
             e.fshr(1);
@@ -799,7 +746,7 @@ BIG.prototype = {
             r.copy(b);
             r.sub(m);
             r.norm();
-            d = (1 - ((r.w[BIG.NLEN - 1] >> (BIG.CHUNK - 1)) & 1));
+            const d = (1 - ((r.w[BIG.NLEN - 1] >> (BIG.CHUNK - 1)) & 1));
             b.cmove(r, d);
             r.copy(this);
             r.add(e);
@@ -814,10 +761,10 @@ BIG.prototype = {
      * return parity of this
      *
      * @this {BIG}
-     * @return BIG object
+     * @return number
      */
     parity: function() {
-        return this.w[0] % 2;
+        return this.w[0] & 1;
     },
 
     /**
@@ -825,7 +772,7 @@ BIG.prototype = {
      *
      * @this {BIG}
      * @parameter nth bit to return
-     * @return bit value
+     * @return number - bit value
      */
     bit: function(n) {
         if ((this.w[Math.floor(n / BIG.BASEBITS)] & (1 << (n % BIG.BASEBITS))) > 0) {
@@ -840,25 +787,23 @@ BIG.prototype = {
      *
      * @this {BIG}
      * @parameter n bits to return
-     * @return bit values
+     * @return number - bit values
      */
     lastbits: function(n) {
-        var msk = (1 << n) - 1;
+        const msk = (1 << n) - 1;
         this.norm();
         return (this.w[0]) & msk;
     },
 
     isok: function() {
-        var ok = true,
-            i;
 
-        for (i = 0; i < BIG.NLEN; i++) {
-            if ((this.w[i] >> BIG.BASEBITS) != 0) {
-                ok = false;
+        for (let i = 0; i < BIG.NLEN; i++) {
+            if ((this.w[i] >> BIG.BASEBITS) !== 0) {
+                return false;
             }
         }
 
-        return ok;
+        return true;
     },
 
     /**
@@ -869,37 +814,37 @@ BIG.prototype = {
      * @return 0, 1 or -1
      */
     jacobi: function(p) {
-        var m = 0,
-            t = new BIG(0),
-            x = new BIG(0),
-            n = new BIG(0),
-            zilch = new BIG(0),
-            one = new BIG(1),
-            n8, k;
+        const zilch = new BIG(0);
+        const one = new BIG(1);
 
         if (p.parity() === 0 || BIG.comp(this, zilch) === 0 || BIG.comp(p, one) <= 0) {
             return 0;
         }
 
         this.norm();
+        const x = new BIG(0);
         x.copy(this);
-        n.copy(p);
         x.mod(p);
 
+        const n = new BIG(0);
+        n.copy(p);
+
+        const t = new BIG(0);
+        let m = 0;
         while (BIG.comp(n, one) > 0) {
             if (BIG.comp(x, zilch) === 0) {
                 return 0;
             }
 
-            n8 = n.lastbits(3);
-            k = 0;
+            const n8 = n.lastbits(3);
+            let k = 0;
 
             while (x.parity() === 0) {
                 k++;
                 x.shr(1);
             }
 
-            if (k % 2 == 1) {
+            if (k % 2 === 1) {
                 m += (n8 * n8 - 1) / 8;
             }
 
@@ -908,7 +853,7 @@ BIG.prototype = {
             t.mod(x);
             n.copy(x);
             x.copy(t);
-            m %= 2;
+            m &= 1;
         }
 
         if (m === 0) {
@@ -926,17 +871,17 @@ BIG.prototype = {
      * @return BIG object
      */
     invmodp: function(p) {
-        var u = new BIG(0),
-            v = new BIG(0),
-            x1 = new BIG(1),
-            x2 = new BIG(0),
-            t = new BIG(0),
-            one = new BIG(1);
-
         this.mod(p);
+        const u = new BIG(0);
         u.copy(this);
+
+        const v = new BIG(0);
         v.copy(p);
 
+        const x1 = new BIG(1);
+        const x2 = new BIG(0);
+        const t = new BIG(0);
+        const one = new BIG(1);
         while (BIG.comp(u, one) !== 0 && BIG.comp(v, one) !== 0) {
             while (u.parity() === 0) {
                 u.fshr(1);
@@ -994,22 +939,24 @@ BIG.prototype = {
      * @this {BIG}
      * @parameter e1 BIG number
      * @parameter m  The BIG Modulus
-     * @return this^e mod m
+     * @return BIG - this^e mod m
      */
     powmod: function(e1, m) {
-        var a = new BIG(1),
-            z = new BIG(0),
-            s = new BIG(0),
-            bt;
-
-        var e=new BIG(0); e.copy(e1);
         this.norm();
+
+        const e = new BIG(0);
+        e.copy(e1);
         e.norm();
+
+        const z = new BIG(0);
         z.copy(e);
+
+        let s = new BIG(0);
         s.copy(this);
 
+        let a = new BIG(1);
         for (;;) {
-            bt = z.parity();
+            const bt = z.parity();
             z.fshr(1);
             if (bt === 1) {
                 a = BIG.modmul(a, s, m);
@@ -1026,21 +973,24 @@ BIG.prototype = {
     }
 };
 
-BIG.ssn = function(r,a,m) {
-    var n=BIG.NLEN-1;
-    m.w[0]=(m.w[0]>>1)|((m.w[1]<<(BIG.BASEBITS-1))&BIG.BMASK);
-    r.w[0]=a.w[0]-m.w[0];
-    var carry=r.w[0]>>BIG.BASEBITS;
-    r.w[0]&=BIG.BMASK;
-    for (var i=1;i<n;i++) {
-        m.w[i]=(m.w[i]>>1)|((m.w[i+1]<<(BIG.BASEBITS-1))&BIG.BMASK);
-        r.w[i]=a.w[i]-m.w[i]+carry;
-        carry=r.w[i]>>BIG.BASEBITS;
-        r.w[i]&=BIG.BMASK;
+BIG.ssn = function(r, a, m) {
+    const n = BIG.NLEN-1;
+
+    m.w[0] = (m.w[0] >> 1) | ((m.w[1] << (BIG.BASEBITS - 1)) & BIG.BMASK);
+    r.w[0] = a.w[0] - m.w[0];
+
+    let carry = r.w[0] >> BIG.BASEBITS;
+    r.w[0] &= BIG.BMASK;
+    for (let i = 1; i < n; i++) {
+        m.w[i] = (m.w[i] >> 1) | ((m.w[i + 1] << (BIG.BASEBITS - 1)) & BIG.BMASK);
+        r.w[i] = a.w[i] - m.w[i] + carry;
+        carry = r.w[i] >> BIG.BASEBITS;
+        r.w[i] &= BIG.BMASK;
     }
-    m.w[n]>>=1;
-    r.w[n]=a.w[n]-m.w[n]+carry;
-    return ((r.w[n]>>(BIG.CHUNK-1))&1);
+
+    m.w[n] >>= 1;
+    r.w[n] = a.w[n] - m.w[n] + carry;
+    return ((r.w[n] >> (BIG.CHUNK - 1)) & 1);
 };
 
 /**
@@ -1051,10 +1001,8 @@ BIG.ssn = function(r,a,m) {
  * @return BIG object
  */
 BIG.frombytearray = function(b, n) {
-    var m = new BIG(0),
-        i;
-
-    for (i = 0; i < BIG.MODBYTES; i++) {
+    const m = new BIG(0);
+    for (let i = 0; i < BIG.MODBYTES; i++) {
         m.fshl(8);
         m.w[0] += b[i + n] & 0xff;
     }
@@ -1072,16 +1020,14 @@ BIG.fromBytes = function(b) {
  * @this {BIG}
  * @parameter a BIG number
  * @parameter b BIG number
- * @return a*b
+ * @return BIG - a*b
  */
 BIG.smul = function(a, b) {
-    var c = new BIG(0),
-        carry, i, j;
+    const c = new BIG(0);
+    for (let i = 0; i < BIG.NLEN; i++) {
+        let carry = 0;
 
-    for (i = 0; i < BIG.NLEN; i++) {
-        carry = 0;
-
-        for (j = 0; j < BIG.NLEN; j++) {
+        for (let j = 0; j < BIG.NLEN; j++) {
             if (i + j < BIG.NLEN) {
                 carry = c.muladd(a.w[i], b.w[j], carry, i + j);
             }
@@ -1097,12 +1043,11 @@ BIG.smul = function(a, b) {
  * @this {BIG}
  * @parameter a BIG number (normalised)
  * @parameter b BIG number (normalised
- * @return 0 if a==b, -1 if a<b, +1 if a>b
+ * @return number - 0 if a==b, -1 if a<b, +1 if a>b
  */
 BIG.comp = function(a, b) {
-    var i;
 
-    for (i = BIG.NLEN - 1; i >= 0; i--) {
+    for (let i = BIG.NLEN - 1; i >= 0; i--) {
         if (a.w[i] === b.w[i]) {
             continue;
         }
@@ -1118,109 +1063,46 @@ BIG.comp = function(a, b) {
 };
 
 /**
- * Get 8*MODBYTES size random number
- *
- * @this {BIG}
- * @parameter rng Cryptographically Secure Random Number Generator
- * @return BIG number
- */
-BIG.random = function(rng) {
-    var m = new BIG(0),
-        j = 0,
-        r = 0,
-        i, b;
-
-    /* generate random BIG */
-    for (i = 0; i < 8 * BIG.MODBYTES; i++) {
-        if (j === 0) {
-            r = rng.getByte();
-        } else {
-            r >>= 1;
-        }
-
-        b = r & 1;
-        m.shl(1);
-        m.w[0] += b; // m.inc(b);
-        j++;
-        j &= 7;
-    }
-    return m;
-};
-
-/**
- * Create random BIG in portable way, one bit at a time
- *
- * @this {BIG}
- * @parameter rng Cryptographically Secure Random Number Generator
- * @parameter q The BIG Modulus
- * @return BIG number
- */
-BIG.randomnum = function(q, rng) {
-    var d = new DBIG(0),
-        j = 0,
-        r = 0,
-        i, b, m;
-
-    for (i = 0; i < 2 * q.nbits(); i++) {
-        if (j === 0) {
-            r = rng.getByte();
-        } else {
-            r >>= 1;
-        }
-
-        b = r & 1;
-        d.shl(1);
-        d.w[0] += b;
-        j++;
-        j &= 7;
-    }
-
-    m = d.mod(q);
-
-    return m;
-};
-
-/**
  * Multiple two BIG numbers
  *
  * @this {BIG}
  * @parameter a BIG number
  * @parameter b BIG number
- * @return a*b as a DBIG number
+ * @return DBIG - a*b as a DBIG number
  */
 BIG.mul = function(a, b) {
-    var c = new DBIG(0),
-        d = new Array(BIG.NLEN), //[],
-        n, s, t, i, k, co;
 
-    for (i = 0; i < BIG.NLEN; i++) {
+    const d = new Array(BIG.NLEN);
+    for (let i = 0; i < BIG.NLEN; i++) {
         d[i] = a.w[i] * b.w[i];
     }
 
-    s = d[0];
-    t = s;
+    let s = d[0];
+    let t = s;
+
+    const c = new DBIG(0);
     c.w[0] = t;
 
-    for (k = 1; k < BIG.NLEN; k++) {
+    for (let k = 1; k < BIG.NLEN; k++) {
         s += d[k];
         t = s;
-        for (i = k; i >= 1 + Math.floor(k / 2); i--) {
+        for (let i = k; i >= 1 + Math.floor(k / 2); i--) {
             t += (a.w[i] - a.w[k - i]) * (b.w[k - i] - b.w[i]);
         }
         c.w[k] = t;
     }
-    for (k = BIG.NLEN; k < 2 * BIG.NLEN - 1; k++) {
+    for (let k = BIG.NLEN; k < 2 * BIG.NLEN - 1; k++) {
         s -= d[k - BIG.NLEN];
         t = s;
-        for (i = BIG.NLEN - 1; i >= 1 + Math.floor(k / 2); i--) {
+        for (let i = BIG.NLEN - 1; i >= 1 + Math.floor(k / 2); i--) {
             t += (a.w[i] - a.w[k - i]) * (b.w[k - i] - b.w[i]);
         }
         c.w[k] = t;
     }
 
-    co = 0;
-    for (i = 0; i < BIG.DNLEN - 1; i++) {
-        n = c.w[i] + co;
+    let co = 0;
+    for (let i = 0; i < BIG.DNLEN - 1; i++) {
+        const n = c.w[i] + co;
         c.w[i] = n & BIG.BMASK;
         co = (n - c.w[i]) * BIG.MODINV;
     }
@@ -1237,21 +1119,20 @@ BIG.mul = function(a, b) {
  * @return a*2 as a DBIG number
  */
 BIG.sqr = function(a) {
-    var c = new DBIG(0),
-        n, t, j, i, co;
 
+    const c = new DBIG(0);
     c.w[0] = a.w[0] * a.w[0];
 
-    for (j = 1; j < BIG.NLEN - 1;) {
-        t = a.w[j] * a.w[0];
-        for (i = 1; i < (j + 1) >> 1; i++) {
+    for (let j = 1; j < BIG.NLEN - 1;) {
+        let t = a.w[j] * a.w[0];
+        for (let i = 1; i < (j + 1) >> 1; i++) {
             t += a.w[j - i] * a.w[i];
         }
         t += t;
         c.w[j] = t;
         j++;
         t = a.w[j] * a.w[0];
-        for (i = 1; i < (j + 1) >> 1; i++) {
+        for (let i = 1; i < (j + 1) >> 1; i++) {
             t += a.w[j - i] * a.w[i];
         }
         t += t;
@@ -1260,16 +1141,16 @@ BIG.sqr = function(a) {
         j++;
     }
 
-    for (j = BIG.NLEN - 1 + BIG.NLEN % 2; j < BIG.DNLEN - 3;) {
-        t = a.w[BIG.NLEN - 1] * a.w[j - BIG.NLEN + 1];
-        for (i = j - BIG.NLEN + 2; i < (j + 1) >> 1; i++) {
+    for (let j = BIG.NLEN - 1 + BIG.NLEN % 2; j < BIG.DNLEN - 3;) {
+        let t = a.w[BIG.NLEN - 1] * a.w[j - BIG.NLEN + 1];
+        for (let i = j - BIG.NLEN + 2; i < (j + 1) >> 1; i++) {
             t += a.w[j - i] * a.w[i];
         }
         t += t;
         c.w[j] = t;
         j++;
         t = a.w[BIG.NLEN - 1] * a.w[j - BIG.NLEN + 1];
-        for (i = j - BIG.NLEN + 2; i < (j + 1) >> 1; i++) {
+        for (let i = j - BIG.NLEN + 2; i < (j + 1) >> 1; i++) {
             t += a.w[j - i] * a.w[i];
         }
         t += t;
@@ -1278,16 +1159,16 @@ BIG.sqr = function(a) {
         j++;
     }
 
-    t = a.w[BIG.NLEN - 2] * a.w[BIG.NLEN - 1];
+    let t = a.w[BIG.NLEN - 2] * a.w[BIG.NLEN - 1];
     t += t;
     c.w[BIG.DNLEN - 3] = t;
 
     t = a.w[BIG.NLEN - 1] * a.w[BIG.NLEN - 1];
     c.w[BIG.DNLEN - 2] = t;
 
-    co = 0;
-    for (i = 0; i < BIG.DNLEN - 1; i++) {
-        n = c.w[i] + co;
+    let co = 0;
+    for (let i = 0; i < BIG.DNLEN - 1; i++) {
+        const n = c.w[i] + co;
         c.w[i] = n & BIG.BMASK;
         co = (n - c.w[i]) * BIG.MODINV;
     }
@@ -1297,20 +1178,19 @@ BIG.sqr = function(a) {
 };
 
 BIG.monty = function(m, nd, d) {
-    var b = new BIG(0),
-        v = new Array(BIG.NLEN),
-        dd = new Array(BIG.NLEN),
-        s, c, t, i, k;
 
-    t = d.w[0];
+    let t = d.w[0];
+    const v = new Array(BIG.NLEN);
     v[0] = ((t & BIG.BMASK) * nd) & BIG.BMASK;
     t += v[0] * m.w[0];
-    c = d.w[1] + (t * BIG.MODINV);
-    s = 0;
 
-    for (k = 1; k < BIG.NLEN; k++) {
-        t = c + s + v[0] * m.w[k];
-        for (i = k - 1; i > Math.floor(k / 2); i--) {
+    const dd = new Array(BIG.NLEN);
+    let c = d.w[1] + (t * BIG.MODINV);
+    let s = 0;
+
+    for (let k = 1; k < BIG.NLEN; k++) {
+        let t = c + s + v[0] * m.w[k];
+        for (let i = k - 1; i > Math.floor(k / 2); i--) {
             t += (v[k - i] - v[i]) * (m.w[i] - m.w[k - i]);
         }
         v[k] = ((t & BIG.BMASK) * nd) & BIG.BMASK;
@@ -1321,9 +1201,10 @@ BIG.monty = function(m, nd, d) {
         s += dd[k];
     }
 
-    for (k = BIG.NLEN; k < 2 * BIG.NLEN - 1; k++) {
-        t = c + s;
-        for (i = BIG.NLEN - 1; i >= 1 + Math.floor(k / 2); i--) {
+    const b = new BIG(0);
+    for (let k = BIG.NLEN; k < 2 * BIG.NLEN - 1; k++) {
+        let t = c + s;
+        for (let i = BIG.NLEN - 1; i >= 1 + Math.floor(k / 2); i--) {
             t += (v[k - i] - v[i]) * (m.w[i] - m.w[k - i]);
         }
         b.w[k - BIG.NLEN] = t & BIG.BMASK;
@@ -1344,16 +1225,18 @@ BIG.monty = function(m, nd, d) {
  * @parameter a1 BIG number
  * @parameter b1 BIG number
  * @parameter m The BIG Modulus
- * @return a1*b1 mod m  as a BIG number
+ * @return BIG - a1*b1 mod m  as a BIG number
  */
 BIG.modmul = function(a1, b1, m) {
-    var d;
-    var a=new BIG(0); a.copy(a1);
-    var b=new BIG(0); b.copy(b1);
+    const a = new BIG(0);
+    a.copy(a1);
     a.mod(m);
-    b.mod(m);
-    d = BIG.mul(a, b);
 
+    const b = new BIG(0);
+    b.copy(b1);
+    b.mod(m);
+
+    const d = BIG.mul(a, b);
     return d.mod(m);
 };
 
@@ -1366,11 +1249,11 @@ BIG.modmul = function(a1, b1, m) {
  * @return a*2 mod m  as a BIG number
  */
 BIG.modsqr = function(a1, m) {
-    var d;
-    var a=new BIG(0); a.copy(a1);
+    const a = new BIG(0);
+    a.copy(a1);
     a.mod(m);
-    d = BIG.sqr(a);
 
+    const d = BIG.sqr(a);
     return d.mod(m);
 };
 
@@ -1383,8 +1266,10 @@ BIG.modsqr = function(a1, m) {
  * @return -a1 mod m
  */
 BIG.modneg = function(a1, m) {
-    var a=new BIG(0); a.copy(a1);
+    const a = new BIG(0);
+    a.copy(a1);
     a.mod(m);
+
     return m.minus(a);
 };
 
@@ -1396,22 +1281,21 @@ BIG.modneg = function(a1, m) {
  * @return BIG number
  */
 BIG.invmod256 = function(a) {
-    var U, t1, t2, b, c;
 
-    t1 = 0;
-    c = (a >> 1) & 1;
+    let t1 = 0;
+    let c = (a >> 1) & 1;
     t1 += c;
     t1 &= 1;
     t1 = 2 - t1;
     t1 <<= 1;
-    U = t1 + 1;
+    let U = t1 + 1;
 
     // i=2
-    b = a & 3;
+    let b = a & 3;
     t1 = U * b;
     t1 >>= 2;
     c = (a >> 2) & 3;
-    t2 = (U * c) & 3;
+    let t2 = (U * c) & 3;
     t1 += t2;
     t1 *= U;
     t1 &= 3;
@@ -1443,7 +1327,7 @@ BIG.invmod256 = function(a) {
  * @constructor
  * @this {DBIG}
  */
-var DBIG = function(x) {
+const DBIG = function(x) {
     this.w = new Array(BIG.DNLEN);
     this.zero();
     this.w[0] = x;
@@ -1458,7 +1342,7 @@ DBIG.prototype = {
      * @return BIG number
      */
     zero: function() {
-        for (var i = 0; i < BIG.DNLEN; i++) {
+        for (let i = 0; i < BIG.DNLEN; i++) {
             this.w[i] = 0;
         }
         return this;
@@ -1472,7 +1356,7 @@ DBIG.prototype = {
      * @return DBIG number
      */
     copy: function(b) {
-        for (var i = 0; i < BIG.DNLEN; i++) {
+        for (let i = 0; i < BIG.DNLEN; i++) {
             this.w[i] = b.w[i];
         }
         return this;
@@ -1486,13 +1370,12 @@ DBIG.prototype = {
      * @return DBIG number
      */
     hcopy: function(b) {
-        var i;
 
-        for (i = 0; i < BIG.NLEN; i++) {
+        for (let i = 0; i < BIG.NLEN; i++) {
             this.w[i] = b.w[i];
         }
 
-        for (i = BIG.NLEN; i < BIG.DNLEN; i++) {
+        for (let i = BIG.NLEN; i < BIG.DNLEN; i++) {
             this.w[i] = 0;
         }
 
@@ -1500,13 +1383,12 @@ DBIG.prototype = {
     },
 
     ucopy: function(b) {
-        var i;
 
-        for (i = 0; i < BIG.NLEN; i++) {
+        for (let i = 0; i < BIG.NLEN; i++) {
             this.w[i] = 0;
         }
 
-        for (i = BIG.NLEN; i < BIG.DNLEN; i++) {
+        for (let i = BIG.NLEN; i < BIG.DNLEN; i++) {
             this.w[i] = b.w[i - BIG.NLEN];
         }
 
@@ -1520,11 +1402,10 @@ DBIG.prototype = {
      * @return DBIG number
      */
     norm: function() {
-        var carry = 0,
-            d, i;
 
-        for (i = 0; i < BIG.DNLEN - 1; i++) {
-            d = this.w[i] + carry;
+        let carry = 0;
+        for (let i = 0; i < BIG.DNLEN - 1; i++) {
+            const d = this.w[i] + carry;
             this.w[i] = d & BIG.BMASK;
             carry = d >> BIG.BASEBITS;
         }
@@ -1539,7 +1420,7 @@ DBIG.prototype = {
      * @this {DBIG}
      */
     muladd: function(x, y, c, i) {
-        var prod = x * y + c + this.w[i];
+        const prod = x * y + c + this.w[i];
         this.w[i] = prod & BIG.BMASK;
         return ((prod - this.w[i]) * BIG.MODINV);
     },
@@ -1552,17 +1433,16 @@ DBIG.prototype = {
      * @return BIG number
      */
     shr: function(k) {
-        var n = k % BIG.BASEBITS,
-            m = Math.floor(k / BIG.BASEBITS),
-            i;
+        const n = k % BIG.BASEBITS;
+        const m = Math.floor(k / BIG.BASEBITS);
 
-        for (i = 0; i < BIG.DNLEN - m - 1; i++) {
+        for (let i = 0; i < BIG.DNLEN - m - 1; i++) {
             this.w[i] = (this.w[m + i] >> n) | ((this.w[m + i + 1] << (BIG.BASEBITS - n)) & BIG.BMASK);
         }
 
         this.w[BIG.DNLEN - m - 1] = this.w[BIG.DNLEN - 1] >> n;
 
-        for (i = BIG.DNLEN - m; i < BIG.DNLEN; i++) {
+        for (let i = BIG.DNLEN - m; i < BIG.DNLEN; i++) {
             this.w[i] = 0;
         }
 
@@ -1577,19 +1457,18 @@ DBIG.prototype = {
      * @return BIG number
      */
     shl: function(k) {
-        var n = k % BIG.BASEBITS,
-            m = Math.floor(k / BIG.BASEBITS),
-            i;
+        const n = k % BIG.BASEBITS;
+        const m = Math.floor(k / BIG.BASEBITS);
 
         this.w[BIG.DNLEN - 1] = ((this.w[BIG.DNLEN - 1 - m] << n)) | (this.w[BIG.DNLEN - m - 2] >> (BIG.BASEBITS - n));
 
-        for (i = BIG.DNLEN - 2; i > m; i--) {
+        for (let i = BIG.DNLEN - 2; i > m; i--) {
             this.w[i] = ((this.w[i - m] << n) & BIG.BMASK) | (this.w[i - m - 1] >> (BIG.BASEBITS - n));
         }
 
         this.w[m] = (this.w[0] << n) & BIG.BMASK;
 
-        for (i = 0; i < m; i++) {
+        for (let i = 0; i < m; i++) {
             this.w[i] = 0;
         }
 
@@ -1604,12 +1483,8 @@ DBIG.prototype = {
      * @parameter d DBIG number
      */
     cmove: function(b, d) {
-        var c = d,
-            i;
-
-        c = ~(c - 1);
-
-        for (i = 0; i < BIG.DNLEN; i++) {
+        const c = ~(d - 1);
+        for (let i = 0; i < BIG.DNLEN; i++) {
             this.w[i] ^= (this.w[i] ^ b.w[i]) & c;
         }
     },
@@ -1622,7 +1497,7 @@ DBIG.prototype = {
      * @return this+=x
      */
     add: function(x) {
-        for (var i = 0; i < BIG.DNLEN; i++) {
+        for (let i = 0; i < BIG.DNLEN; i++) {
             this.w[i] += x.w[i];
         }
     },
@@ -1635,13 +1510,13 @@ DBIG.prototype = {
      * @return this-=x
      */
     sub: function(x) {
-        for (var i = 0; i < BIG.DNLEN; i++) {
+        for (let i = 0; i < BIG.DNLEN; i++) {
             this.w[i] -= x.w[i];
         }
     },
 
     rsub: function(x) {
-        for (var i = 0; i < BIG.DNLEN; i++) {
+        for (let i = 0; i < BIG.DNLEN; i++) {
             this.w[i] = x.w[i] - this.w[i];
         }
     },
@@ -1650,15 +1525,15 @@ DBIG.prototype = {
      * length in bits
      *
      * @this {DBIG}
-     * @return The number of bigs in DBIG object
+     * @return number - The number of bits in DBIG object
      */
     nbits: function() {
-        var k = BIG.DNLEN - 1,
-            bts, c;
 
-        var t=new DBIG(0); t.copy(this);
+        const t = new DBIG(0);
+        t.copy(this);
         t.norm();
 
+        let k = BIG.DNLEN - 1;
         while (k >= 0 && t.w[k] === 0) {
             k--;
         }
@@ -1667,8 +1542,8 @@ DBIG.prototype = {
             return 0;
         }
 
-        bts = BIG.BASEBITS * k;
-        c = t.w[k];
+        let bts = BIG.BASEBITS * k;
+        let c = t.w[k];
 
         while (c !== 0) {
             c = Math.floor(c / 2);
@@ -1685,10 +1560,8 @@ DBIG.prototype = {
      * @return string representation of a BIG number
      */
     toString: function() {
-        var s = "",
-            len = this.nbits(),
-            b, i;
 
+        let len = this.nbits();
         if (len % 4 === 0) {
             len = Math.floor(len / 4);
         } else {
@@ -1696,8 +1569,9 @@ DBIG.prototype = {
             len++;
         }
 
-        for (i = len - 1; i >= 0; i--) {
-            b = new DBIG(0);
+        let s = "";
+        for (let i = len - 1; i >= 0; i--) {
+            const b = new DBIG(0);
             b.copy(this);
             b.shr(i * 4);
             s += (b.w[0] & 15).toString(16);
@@ -1713,24 +1587,25 @@ DBIG.prototype = {
      * @return BIG object
      */
     mod: function(c) {
-        var k = 0,
-            m = new DBIG(0),
-            dr = new DBIG(0),
-            r = new BIG(0);
-
         this.norm();
+
+        const m = new DBIG(0);
         m.hcopy(c);
+
+        const r = new BIG(0);
         r.hcopy(this);
 
         if (DBIG.comp(this, m) < 0) {
             return r;
         }
 
+        let k = 0;
         do {
             m.shl(1);
             k++;
         } while (DBIG.comp(this, m) >= 0);
 
+        const dr = new DBIG(0);
         while (k > 0) {
             m.shr(1);
 
@@ -1750,27 +1625,27 @@ DBIG.prototype = {
      * this/=c
      *
      * @this {DBIG}
-     * @paramter c divisor
-     * @return DBIG number
+     * @param c divisor
+     * @return BIG number
      */
     div: function(c) {
-        var d = 0,
-            k = 0,
-            m = new DBIG(0),
-            dr = new DBIG(0),
-            r = new BIG(0),
-            a = new BIG(0),
-            e = new BIG(1);
 
-        m.hcopy(c);
         this.norm();
 
+        const m = new DBIG(0);
+        m.hcopy(c);
+
+        const e = new BIG(1);
+        let k = 0;
         while (DBIG.comp(this, m) >= 0) {
             e.fshl(1);
             m.shl(1);
             k++;
         }
 
+        const a = new BIG(0);
+        const r = new BIG(0);
+        const dr = new DBIG(0);
         while (k > 0) {
             m.shr(1);
             e.shr(1);
@@ -1778,7 +1653,7 @@ DBIG.prototype = {
             dr.copy(this);
             dr.sub(m);
             dr.norm();
-            d = (1 - ((dr.w[BIG.DNLEN - 1] >> (BIG.CHUNK - 1)) & 1));
+            const d = (1 - ((dr.w[BIG.DNLEN - 1] >> (BIG.CHUNK - 1)) & 1));
             this.cmove(dr, d);
             r.copy(a);
             r.add(e);
@@ -1787,6 +1662,7 @@ DBIG.prototype = {
 
             k--;
         }
+
         return a;
     },
 
@@ -1794,17 +1670,15 @@ DBIG.prototype = {
      * split this DBIG at position n, return higher half, keep lower half
      *
      * @this {DBIG}
-     * @paramter n Position to splitdivisor
+     * @param n Position to splitdivisor
      * @return lower half BIG number
      */
     split: function(n) {
-        var t = new BIG(0),
-            m = n % BIG.BASEBITS,
-            carry = this.w[BIG.DNLEN - 1] << (BIG.BASEBITS - m),
-            nw, i;
-
-        for (i = BIG.DNLEN - 2; i >= BIG.NLEN - 1; i--) {
-            nw = (this.w[i] >> m) | carry;
+        const m = n % BIG.BASEBITS;
+        const t = new BIG(0);
+        let carry = this.w[BIG.DNLEN - 1] << (BIG.BASEBITS - m);
+        for (let i = BIG.DNLEN - 2; i >= BIG.NLEN - 1; i--) {
+            const nw = (this.w[i] >> m) | carry;
             carry = (this.w[i] << (BIG.BASEBITS - m)) & BIG.BMASK;
             t.w[i - BIG.NLEN + 1] = nw;
         }
@@ -1822,12 +1696,11 @@ DBIG.prototype = {
  * @this {DBIG}
  * @parameter a DBIG number (normalised)
  * @parameter b DBIG number (normalised
- * @return 0 if a==b, -1 if a<b, +1 if a>b
+ * @return number - 0 if a==b, -1 if a<b, +1 if a>b
  */
 DBIG.comp = function(a, b) {
-    var i;
 
-    for (i = BIG.DNLEN - 1; i >= 0; i--) {
+    for (let i = BIG.DNLEN - 1; i >= 0; i--) {
         if (a.w[i] === b.w[i]) {
             continue;
         }
