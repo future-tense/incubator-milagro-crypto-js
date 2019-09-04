@@ -108,35 +108,21 @@ ECP.prototype = {
         this.cmove(W[6], ECP.teq(babs, 6));
         this.cmove(W[7], ECP.teq(babs, 7));
 
-        const MP = new ECP();
-        MP.copy(this);
-        MP.neg();
+        const MP = new ECP(this).neg();
         this.cmove(MP, (m & 1));
     },
 
     /* Test P == Q */
 
     equals: function(Q) {
-
-        const a = new FP(0);
-        const b = new FP(0);
-        a.copy(this.x);
-        a.mul(Q.z);
-        a.reduce();
-        b.copy(Q.x);
-        b.mul(this.z);
-        b.reduce();
-
+        const a = new FP(this.x).mul(Q.z).reduce();
+        const b = new FP(this.z).mul(Q.x).reduce();
         if (!a.equals(b)) {
             return false;
         }
 
-        a.copy(this.y);
-        a.mul(Q.z);
-        a.reduce();
-        b.copy(Q.y);
-        b.mul(this.z);
-        b.reduce();
+        a.copy(this.y).mul(Q.z).reduce();
+        b.copy(this.z).mul(Q.y).reduce();
         return (a.equals(b));
     },
 
@@ -160,6 +146,7 @@ ECP.prototype = {
     neg: function() {
         this.y.neg();
         this.y.norm();
+        return this;
     },
 
     /**
@@ -252,21 +239,19 @@ ECP.prototype = {
      */
     affine: function() {
         if (this.is_infinity()) {
-            return;
+            return this;
         }
 
         const one = new FP(1);
         if (this.z.equals(one)) {
-            return;
+            return this;
         }
 
         this.z.inverse();
-
-        this.x.mul(this.z);
-        this.x.reduce();
-        this.y.mul(this.z);
-        this.y.reduce();
+        this.x.mul(this.z).reduce();
+        this.y.mul(this.z).reduce();
         this.z = one;
+        return this;
     },
 
     /**
@@ -390,50 +375,30 @@ ECP.prototype = {
      */
     dbl: function() {
 
-        const t0 = new FP(0);
-        t0.copy(this.y);
-        t0.sqr();
-        const t1 = new FP(0);
-        t1.copy(this.y);
-        t1.mul(this.z);
-        const t2 = new FP(0);
-        t2.copy(this.z);
-        t2.sqr();
+        const t0 = new FP(this.y).sqr();
+        const t1 = new FP(this.y).mul(this.z);
+        const t2 = new FP(this.z).sqr().imul(3 * ROM_CURVE.CURVE_B_I);
 
-        this.z.copy(t0);
-        this.z.add(t0);
-        this.z.norm();
+        this.z.copy(t0).add(t0).norm();
         this.z.add(this.z);
         this.z.add(this.z);
         this.z.norm();
 
-        t2.imul(3 * ROM_CURVE.CURVE_B_I);
-
-        const x3 = new FP(0);
-        x3.copy(t2);
-        x3.mul(this.z);
-        const y3 = new FP(0);
-        y3.copy(t0);
-        y3.add(t2);
-        y3.norm();
+        const x3 = new FP(t2).mul(this.z);
+        const y3 = new FP(t0).add(t2).norm();
         this.z.mul(t1);
-        t1.copy(t2);
-        t1.add(t2);
-        t2.add(t1);
-        t0.sub(t2);
-        t0.norm();
-        y3.mul(t0);
-        y3.add(x3);
-        t1.copy(this.x);
-        t1.mul(this.y);
-        this.x.copy(t0);
-        this.x.norm();
-        this.x.mul(t1);
-        this.x.add(this.x);
 
-        this.x.norm();
-        this.y.copy(y3);
-        this.y.norm();
+        t1.copy(t2).add(t2);
+        t2.add(t1);
+        t0.sub(t2).norm();
+        y3.mul(t0).add(x3);
+
+        t1.copy(this.x).mul(this.y);
+        this.x.copy(t0).norm().mul(t1);
+        this.x.add(this.x).norm();
+        this.y.copy(y3).norm();
+
+        return this;
     },
 
     /**
@@ -525,6 +490,8 @@ ECP.prototype = {
         this.y.norm();
         this.z.copy(z3);
         this.z.norm();
+
+        return this;
     },
 
     /**
@@ -534,9 +501,7 @@ ECP.prototype = {
      * @param Q ECP instance
      */
     sub: function(Q) {
-        const NQ = new ECP();
-        NQ.copy(Q);
-        NQ.neg();
+        const NQ = new ECP(Q).neg();
         this.add(NQ);
     },
 
@@ -550,8 +515,7 @@ ECP.prototype = {
     pinmul: function(e, bts) {
         const P = new ECP();
         const R0 = new ECP();
-        const R1 = new ECP();
-        R1.copy(this);
+        const R1 = new ECP(this);
 
         for (let i = bts - 1; i >= 0; i--) {
             const b = (e >> i) & 1;
@@ -584,33 +548,23 @@ ECP.prototype = {
 
         // fixed size windows
         const mt = new BIG();
-        const t = new BIG();
-        const Q = new ECP();
+        const Q = new ECP(this).dbl();
         const C = new ECP();
         const W = [];
         const w = [];
 
         // precompute table
-        Q.copy(this);
-        Q.dbl();
-        W[0] = new ECP();
-        W[0].copy(this);
-
+        W[0] = new ECP(this);
         for (let i = 1; i < 8; i++) {
-            W[i] = new ECP();
-            W[i].copy(W[i - 1]);
-            W[i].add(Q);
+            W[i] = new ECP(W[i - 1]).add(Q);
         }
 
         // make exponent odd - add 2P if even, P if odd
-        t.copy(e);
+        const t = new BIG(e);
         const s = t.parity();
-        t.inc(1);
-        t.norm();
+        t.inc(1).norm();
         const ns = t.parity();
-        mt.copy(t);
-        mt.inc(1);
-        mt.norm();
+        mt.copy(t).inc(1).norm();
         t.cmove(mt, s);
         Q.cmove(this, ns);
         C.copy(Q);
@@ -629,16 +583,9 @@ ECP.prototype = {
         P.copy(W[Math.floor((w[nb] - 1) / 2)]);
         for (let i = nb - 1; i >= 0; i--) {
             Q.select(W, w[i]);
-            P.dbl();
-            P.dbl();
-            P.dbl();
-            P.dbl();
-            P.add(Q);
+            P.dbl().dbl().dbl().dbl().add(Q);
         }
-        P.sub(C);
-        P.affine();
-
-        return P;
+        return P.sub(C).affine();
     },
 
     /**
@@ -650,11 +597,8 @@ ECP.prototype = {
      * @param f BIG number multiplier
      */
     mul2: function(e, Q, f) {
-        const te = new BIG();
-        te.copy(e);
-
-        const tf = new BIG();
-        tf.copy(f);
+        const te = new BIG(e);
+        const tf = new BIG(f);
 
         const S = new ECP();
         const T = new ECP();
@@ -757,12 +701,8 @@ ECP.prototype = {
   * @this {ECP}
   */
 ECP.generator = function() {
-    const gx = new BIG(0);
-    gx.rcopy(ROM_CURVE.CURVE_Gx);
-
-    const gy = new BIG(0);
-    gy.rcopy(ROM_CURVE.CURVE_Gy);
-
+    const gx = new BIG(0).rcopy(ROM_CURVE.CURVE_Gx);
+    const gy = new BIG(0).rcopy(ROM_CURVE.CURVE_Gy);
     const G = new ECP();
     G.setxy(gx, gy);
     return G;
@@ -827,16 +767,8 @@ ECP.fromBytes = function(b) {
   * @param x x-value
   */
 ECP.RHS = function(x) {
-    const r = new FP(0);
-    r.copy(x);
-    r.sqr();
-    r.mul(x);
-
     const b = new FP(ROM_CURVE.CURVE_B_I);
-    r.add(b);
-
-    r.reduce();
-    return r;
+    return new FP(x).sqr().mul(x).add(b).reduce();
 };
 
 // CommonJS module exports

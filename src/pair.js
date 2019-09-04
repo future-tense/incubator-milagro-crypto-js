@@ -46,71 +46,38 @@ const PAIR = {
 
         let a, b, c;
         if (A === B) { /* Doubling */
-            const XX = new FP2(A.getx());
-            const YY = new FP2(A.gety());
-            const ZZ = new FP2(A.getz());
-            const YZ = new FP2(YY);
-
-            YZ.mul(ZZ); //YZ
-            XX.sqr(); //X^2
-            YY.sqr(); //Y^2
-            ZZ.sqr(); //Z^2
-
-            YZ.imul(4);
-            YZ.neg();
-            YZ.norm(); //-2YZ
-            YZ.pmul(Qy); //-2YZ.Ys
-
-            XX.imul(6); //3X^2
-            XX.pmul(Qx); //3X^2.Xs
-
             const sb = 3 * ROM_CURVE.CURVE_B_I;
-            ZZ.imul(sb);
-            ZZ.div_ip2();
-            ZZ.norm(); // 3b.Z^2
 
-            YY.add(YY);
-            ZZ.sub(YY);
-            ZZ.norm(); // 3b.Z^2-Y^2
+            const y = A.gety();
+            const z = A.getz();
+            const XX = new FP2(A.getx()).sqr().imul(6).pmul(Qx);
+            const YY = new FP2(y).sqr().imul(2);
+            const ZZ = new FP2(z).sqr().imul(sb).div_ip2().norm().sub(YY).norm();
+            const YZ = new FP2(y).mul(z).imul(4).neg().norm().pmul(Qy);
 
             a = new FP4(YZ, ZZ); // -2YZ.Ys | 3b.Z^2-Y^2 | 3X^2.Xs
             b = new FP4(XX); // L(0,1) | L(0,0) | L(1,0)
             c = new FP4(0);
             A.dbl();
         } else { /* Addition */
-            const X1 = new FP2(A.getx()); // X1
-            const Y1 = new FP2(A.gety()); // Y1
-            const T1 = new FP2(A.getz()); // Z1
-            const T2 = new FP2(A.getz()); // Z1
+            const T1 = new FP2(A.getz()).mul(B.gety());
+            const T2 = new FP2(A.getz()).mul(B.getx());
+            const X1 = new FP2(A.getx()).sub(T2).norm();
+            const Y1 = new FP2(A.gety()).sub(T1).norm();
 
-            T1.mul(B.gety()); // T1=Z1.Y2
-            T2.mul(B.getx()); // T2=Z1.X2
+            T1.copy(X1).mul(B.gety());
+            T2.copy(Y1).mul(B.getx()).sub(T1).norm();
 
-            X1.sub(T2);
-            X1.norm(); // X1=X1-Z1.X2
-            Y1.sub(T1);
-            Y1.norm(); // Y1=Y1-Z1.Y2
+            X1.pmul(Qy);
+            Y1.pmul(Qx).neg().norm();
 
-            T1.copy(X1); // T1=X1-Z1.X2
-            X1.pmul(Qy); // X1=(X1-Z1.X2).Ys
-            T1.mul(B.gety()); // T1=(X1-Z1.X2).Y2
-
-            T2.copy(Y1); // T2=Y1-Z1.Y2
-            T2.mul(B.getx()); // T2=(Y1-Z1.Y2).X2
-            T2.sub(T1);
-            T2.norm(); // T2=(Y1-Z1.Y2).X2 - (X1-Z1.X2).Y2
-            Y1.pmul(Qx);
-            Y1.neg();
-            Y1.norm(); // Y1=-(Y1-Z1.Y2).Xs
-
-            a = new FP4(X1, T2); // (X1-Z1.X2).Ys  |  (Y1-Z1.Y2).X2 - (X1-Z1.X2).Y2  | - (Y1-Z1.Y2).Xs
+            a = new FP4(X1, T2);
             b = new FP4(Y1);
             c = new FP4(0);
             A.add(B);
         }
 
-        const r = new FP12(1);
-        r.set(a, b, c);
+        const r = new FP12(a, b, c);
         r.settype(FP.SPARSER);
 
         return r;
@@ -123,7 +90,7 @@ const PAIR = {
      */
     initmp: function() {
         const r = [];
-        for (let i=0;i<ECP.ATE_BITS;i++) {
+        for (let i = 0; i < ECP.ATE_BITS; i++) {
             r[i] = new FP12(1);
         }
         return r;
@@ -139,13 +106,10 @@ const PAIR = {
     miller: function(r) {
         const res = new FP12(1);
         for (let i = ECP.ATE_BITS - 1; i >= 1; i--) {
-            res.sqr();
-            res.ssmul(r[i]);
+            res.sqr().ssmul(r[i]);
         }
 
-        res.conj();
-        res.ssmul(r[0]);
-
+        res.conj().ssmul(r[0]);
         return res;
     },
 
@@ -158,31 +122,19 @@ const PAIR = {
      * @param Q1 An element of G1
      */
     another: function(r, P1, Q1) {
-
         // P is needed in affine form for line function, Q for (Qx,Qy) extraction
-        const P = new ECP2();
-        P.copy(P1);
-        P.affine();
+        const P = new ECP2(P1).affine();
+        const Q = new ECP(Q1).affine();
 
-        const Q = new ECP();
-        Q.copy(Q1);
-        Q.affine();
-
-        const fa = new BIG(0);
-        fa.rcopy(ROM_FIELD.Fra);
-        const fb = new BIG(0);
-        fb.rcopy(ROM_FIELD.Frb);
+        const fa = new BIG(0).rcopy(ROM_FIELD.Fra);
+        const fb = new BIG(0).rcopy(ROM_FIELD.Frb);
         const f = new FP2(fa, fb);
 
         const Qx = new FP(Q.getx());
         const Qy = new FP(Q.gety());
 
-        const A = new ECP2();
-        A.copy(P);
-
-        const MP = new ECP2();
-        MP.copy(P);
-        MP.neg();
+        const A = new ECP2(P);
+        const MP = new ECP2(P).neg();
 
         const n = new BIG(0);
         const n3 = new BIG(0);
@@ -205,12 +157,9 @@ const PAIR = {
         /* R-ate fixup required for BN curves */
         A.neg();
 
-        const K = new ECP2();
-        K.copy(P);
-        K.frob(f);
+        const K = new ECP2(P).frob(f);
         const lv = PAIR.line(A, K, Qx, Qy);
-        K.frob(f);
-        K.neg();
+        K.frob(f).neg();
         const lv2 = PAIR.line(A, K, Qx, Qy);
         lv.smul(lv2);
         r[0].ssmul(lv);
@@ -225,28 +174,18 @@ const PAIR = {
      * @result r An element of GT i.e. result of the pairing calculation e(P,Q)
      */
     ate: function(P1, Q1) {
-
-        const fa = new BIG(0);
-        fa.rcopy(ROM_FIELD.Fra);
-        const fb = new BIG(0);
-        fb.rcopy(ROM_FIELD.Frb);
+        const fa = new BIG(0).rcopy(ROM_FIELD.Fra);
+        const fb = new BIG(0).rcopy(ROM_FIELD.Frb);
         const f = new FP2(fa, fb);
-        const P = new ECP2();
-        P.copy(P1);
-        P.affine();
-        const Q = new ECP();
-        Q.copy(Q1);
-        Q.affine();
+
+        const P = new ECP2(P1).affine();
+        const Q = new ECP(Q1).affine();
 
         const Qx = new FP(Q.getx());
         const Qy = new FP(Q.gety());
 
-        const A = new ECP2();
-        A.copy(P);
-
-        const NP = new ECP2();
-        NP.copy(P);
-        NP.neg();
+        const A = new ECP2(P);
+        const NP = new ECP2(P).neg();
 
         const n = new BIG(0);
         const n3 = new BIG(0);
@@ -274,13 +213,9 @@ const PAIR = {
         /* R-ate fixup */
         A.neg();
 
-        const K = new ECP2();
-        K.copy(P);
-        K.frob(f);
-
+        const K = new ECP2(P).frob(f);
         const lv = PAIR.line(A, K, Qx, Qy);
-        K.frob(f);
-        K.neg();
+        K.frob(f).neg();
         const lv2 = PAIR.line(A, K, Qx, Qy);
         lv.smul(lv2);
         r.ssmul(lv);
@@ -300,24 +235,14 @@ const PAIR = {
      */
     ate2: function(P1, Q1, R1, S1) {
 
-        const fa = new BIG(0);
-        fa.rcopy(ROM_FIELD.Fra);
-        const fb = new BIG(0);
-        fb.rcopy(ROM_FIELD.Frb);
+        const fa = new BIG(0).rcopy(ROM_FIELD.Fra);
+        const fb = new BIG(0).rcopy(ROM_FIELD.Frb);
         const f = new FP2(fa, fb);
 
-        const P = new ECP2();
-        P.copy(P1);
-        P.affine();
-        const Q = new ECP();
-        Q.copy(Q1);
-        Q.affine();
-        const R = new ECP2();
-        R.copy(R1);
-        R.affine();
-        const S = new ECP();
-        S.copy(S1);
-        S.affine();
+        const P = new ECP2(P1).affine();
+        const Q = new ECP(Q1).affine();
+        const R = new ECP2(R1).affine();
+        const S = new ECP(S1).affine();
 
         const Qx = new FP(Q.getx());
         const Qy = new FP(Q.gety());
@@ -325,18 +250,11 @@ const PAIR = {
         const Sx = new FP(S.getx());
         const Sy = new FP(S.gety());
 
-        const A = new ECP2();
-        A.copy(P);
+        const A = new ECP2(P);
+        const B = new ECP2(R);
 
-        const B = new ECP2();
-        B.copy(R);
-
-        const NP = new ECP2();
-        NP.copy(P);
-        NP.neg();
-        const NR = new ECP2();
-        NR.copy(R);
-        NR.neg();
+        const NP = new ECP2(P).neg();
+        const NR = new ECP2(R).neg();
 
         const n = new BIG(0);
         const n3 = new BIG(0);
@@ -370,24 +288,19 @@ const PAIR = {
         A.neg();
         B.neg();
 
-        const K = new ECP2();
-        K.copy(P);
-        K.frob(f);
+        const K = new ECP2(P).frob(f);
 
         let lv, lv2;
         lv = PAIR.line(A, K, Qx, Qy);
-        K.frob(f);
-        K.neg();
+        K.frob(f).neg();
         lv2 = PAIR.line(A, K, Qx, Qy);
         lv.smul(lv2);
         r.ssmul(lv);
 
-        K.copy(R);
-        K.frob(f);
+        K.copy(R).frob(f);
 
         lv = PAIR.line(B, K, Sx, Sy);
-        K.frob(f);
-        K.neg();
+        K.frob(f).neg();
         lv2 = PAIR.line(B, K, Sx, Sy);
         lv.smul(lv2);
         r.ssmul(lv);
@@ -404,74 +317,42 @@ const PAIR = {
      */
     fexp: function(m) {
 
-        const fa = new BIG(0);
-        fa.rcopy(ROM_FIELD.Fra);
-        const fb = new BIG(0);
-        fb.rcopy(ROM_FIELD.Frb);
+        const fa = new BIG(0).rcopy(ROM_FIELD.Fra);
+        const fb = new BIG(0).rcopy(ROM_FIELD.Frb);
         const f = new FP2(fa, fb);
-        const x = new BIG(0);
-        x.rcopy(ROM_CURVE.CURVE_Bnx);
-
-        const r = new FP12(m);
+        const x = new BIG(0).rcopy(ROM_CURVE.CURVE_Bnx);
 
         /* Easy part of final exp */
-        let lv = new FP12(r);
-        lv.inverse();
-        r.conj();
-        r.mul(lv);
+        let lv = new FP12(m).inverse();
+        const r = new FP12(m).conj().mul(lv);
         lv.copy(r);
-        r.frob(f);
-        r.frob(f);
-        r.mul(lv);
+        r.frob(f).frob(f).mul(lv);
 
         /* Hard part of final exp */
-        lv.copy(r);
-        lv.frob(f);
-        const x0 = new FP12(lv); //x0.copy(lv);
-        x0.frob(f);
+        lv.copy(r).frob(f);
+        const x0 = new FP12(lv);
         lv.mul(r);
-        x0.mul(lv);
-        x0.frob(f);
-        const x1 = new FP12(r); //x1.copy(r);
-        x1.conj();
-
+        x0.frob(f).mul(lv).frob(f);
+        const x1 = new FP12(r).conj();
         const x4 = r.pow(x);
-
-        const x3 = new FP12(x4); //x3.copy(x4);
-        x3.frob(f);
+        const x3 = new FP12(x4).frob(f);
         const x2 = x4.pow(x);
-        const x5 = new FP12(x2); /*x5.copy(x2);*/
-        x5.conj();
+        const x5 = new FP12(x2).conj();
+
         lv = x2.pow(x);
         x2.frob(f);
-        r.copy(x2);
-        r.conj();
 
-        x4.mul(r);
+        r.copy(x2).conj();
         x2.frob(f);
+        x4.mul(r);
 
-        r.copy(lv);
-        r.frob(f);
-        lv.mul(r);
-
-        lv.usqr();
-        lv.mul(x4);
-        lv.mul(x5);
-        r.copy(x3);
-        r.mul(x5);
-        r.mul(lv);
+        r.copy(lv).frob(f);
+        lv.mul(r).usqr().mul(x4).mul(x5);
+        r.copy(x3).mul(x5).mul(lv);
         lv.mul(x2);
-        r.usqr();
-        r.mul(lv);
-        r.usqr();
-        lv.copy(r);
-        lv.mul(x1);
-        r.mul(x0);
-        lv.usqr();
-        r.mul(lv);
-        r.reduce();
-
-        return r;
+        r.usqr().mul(lv).usqr();
+        lv.copy(r).mul(x1).usqr();
+        return r.mul(x0).mul(lv).reduce();
     }
 };
 
@@ -500,8 +381,7 @@ PAIR.lbits = function(n3, n) {
 PAIR.glv = function(e) {
 
     const t = new BIG(0);
-    const q = new BIG(0);
-    q.rcopy(ROM_CURVE.CURVE_Order);
+    const q = new BIG(0).rcopy(ROM_CURVE.CURVE_Order);
 
     const u = [];
     const v = [];
@@ -519,9 +399,7 @@ PAIR.glv = function(e) {
         for (let j = 0; j < 2; j++) {
             t.rcopy(ROM_CURVE.CURVE_SB[j][i]);
             t.copy(BIG.modmul(v[j], t, q));
-            u[i].add(q);
-            u[i].sub(t);
-            u[i].mod(q);
+            u[i].add(q).sub(t).mod(q);
         }
     }
 
@@ -535,8 +413,7 @@ PAIR.glv = function(e) {
   */
 PAIR.gs = function(e) {
     const t = new BIG(0);
-    const q = new BIG(0);
-    q.rcopy(ROM_CURVE.CURVE_Order);
+    const q = new BIG(0).rcopy(ROM_CURVE.CURVE_Order);
 
     const u = [];
     const v = [];
@@ -554,9 +431,7 @@ PAIR.gs = function(e) {
         for (let j = 0; j < 4; j++) {
             t.rcopy(ROM_CURVE.CURVE_BB[j][i]);
             t.copy(BIG.modmul(v[j], t, q));
-            u[i].add(q);
-            u[i].sub(t);
-            u[i].mod(q);
+            u[i].add(q).sub(t).mod(q);
         }
     }
 
@@ -573,14 +448,10 @@ PAIR.gs = function(e) {
   */
 PAIR.G1mul = function(P, e) {
 
-    const R = new ECP();
-    R.copy(P);
-    const Q = new ECP();
-    Q.copy(P); Q.affine();
-    const q = new BIG(0);
-    q.rcopy(ROM_CURVE.CURVE_Order);
-    const bcru = new BIG(0);
-    bcru.rcopy(ROM_CURVE.CURVE_Cru);
+    const R = new ECP(P);
+    const Q = new ECP(P).affine();
+    const q = new BIG(0).rcopy(ROM_CURVE.CURVE_Order);
+    const bcru = new BIG(0).rcopy(ROM_CURVE.CURVE_Cru);
     const cru = new FP(bcru);
     const t = new BIG(0);
     const u = PAIR.glv(e);
@@ -618,26 +489,19 @@ PAIR.G1mul = function(P, e) {
   */
 PAIR.G2mul = function(P, e) {
 
-    const fa = new BIG(0);
-    fa.rcopy(ROM_FIELD.Fra);
-    const fb = new BIG(0);
-    fb.rcopy(ROM_FIELD.Frb);
+    const fa = new BIG(0).rcopy(ROM_FIELD.Fra);
+    const fb = new BIG(0).rcopy(ROM_FIELD.Frb);
     const f = new FP2(fa, fb);
 
-    const q = new BIG(0);
-    q.rcopy(ROM_CURVE.CURVE_Order);
+    const q = new BIG(0).rcopy(ROM_CURVE.CURVE_Order);
 
     const u = PAIR.gs(e);
     const t = new BIG(0);
 
     const Q = [];
-    Q[0] = new ECP2();
-    Q[0].copy(P);
-
+    Q[0] = new ECP2(P);
     for (let i = 1; i < 4; i++) {
-        Q[i] = new ECP2();
-        Q[i].copy(Q[i - 1]);
-        Q[i].frob(f);
+        Q[i] = new ECP2(Q[i - 1]).frob(f);
     }
 
     for (let i = 0; i < 4; i++) {
@@ -665,25 +529,20 @@ PAIR.G2mul = function(P, e) {
   */
 PAIR.GTpow = function(d, e) {
 
-    const fa = new BIG(0);
-    fa.rcopy(ROM_FIELD.Fra);
-    const fb = new BIG(0);
-    fb.rcopy(ROM_FIELD.Frb);
+    const fa = new BIG(0).rcopy(ROM_FIELD.Fra);
+    const fb = new BIG(0).rcopy(ROM_FIELD.Frb);
     const f = new FP2(fa, fb);
-    const q = new BIG(0);
-    q.rcopy(ROM_CURVE.CURVE_Order);
-    const t = new BIG(0);
+    const q = new BIG(0).rcopy(ROM_CURVE.CURVE_Order);
     const u = PAIR.gs(e);
 
     const g = [];
     g[0] = new FP12(d);
 
     for (let i = 1; i < 4; i++) {
-        g[i] = new FP12(0);
-        g[i].copy(g[i - 1]);
-        g[i].frob(f);
+        g[i] = new FP12(g[i - 1]).frob(f);
     }
 
+    const t = new BIG(0);
     for (let i = 0; i < 4; i++) {
         const np = u[i].nbits();
         t.copy(BIG.modneg(u[i], q));

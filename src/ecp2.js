@@ -71,6 +71,7 @@ ECP2.prototype = {
         this.x.copy(P.x);
         this.y.copy(P.y);
         this.z.copy(P.z);
+        return this;
     },
 
     /**
@@ -162,7 +163,7 @@ ECP2.prototype = {
         this.y.norm();
         this.y.neg();
         this.y.norm();
-        return;
+        return this;
     },
 
     /**
@@ -171,9 +172,8 @@ ECP2.prototype = {
      * @this {ECP2}
      */
     affine: function() {
-
         if (this.is_infinity()) {
-            return;
+            return this;
         }
 
         const one = new FP2(1);
@@ -181,7 +181,7 @@ ECP2.prototype = {
         if (this.z.equals(one)) {
             this.x.reduce();
             this.y.reduce();
-            return;
+            return this;
         }
 
         this.z.inverse();
@@ -191,6 +191,8 @@ ECP2.prototype = {
         this.y.mul(this.z);
         this.y.reduce();
         this.z.copy(one);
+
+        return this;
     },
 
     /**
@@ -354,6 +356,7 @@ ECP2.prototype = {
         this.x.mul(X2);
         this.y.mul(X2);
         this.y.mul(X);
+        return this;
     },
 
     /**

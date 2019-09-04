@@ -226,8 +226,8 @@ BIG.prototype = {
         }
 
         this.w[BIG.NLEN - 1] = (this.w[BIG.NLEN - 1] + carry);
-
-        return (this.w[BIG.NLEN - 1] >> ((8 * BIG.MODBYTES) % BIG.BASEBITS));
+//        return (this.w[BIG.NLEN - 1] >> ((8 * BIG.MODBYTES) % BIG.BASEBITS));
+        return this;
     },
 
     /**
@@ -691,7 +691,7 @@ BIG.prototype = {
         m.copy(m1);
 
         if (BIG.comp(this, m) < 0) {
-            return;
+            return this;
         }
 
 
@@ -711,6 +711,7 @@ BIG.prototype = {
             this.cmove(r, (1 - ((r.w[BIG.NLEN - 1] >> (BIG.CHUNK - 1)) & 1)));
             k--;
         }
+        return this;
     },
 
     /**
@@ -1500,6 +1501,7 @@ DBIG.prototype = {
         for (let i = 0; i < BIG.DNLEN; i++) {
             this.w[i] += x.w[i];
         }
+        return this;
     },
 
     /**
@@ -1513,6 +1515,7 @@ DBIG.prototype = {
         for (let i = 0; i < BIG.DNLEN; i++) {
             this.w[i] -= x.w[i];
         }
+        return this;
     },
 
     rsub: function(x) {

@@ -91,6 +91,7 @@ FP.prototype = {
     bcopy: function(y) {
         this.f.copy(y);
         this.nres();
+        return this;
     },
 
     /**
@@ -102,6 +103,7 @@ FP.prototype = {
     copy: function(y) {
         this.XES = y.XES;
         this.f.copy(y.f);
+        return this;
     },
 
     /**
@@ -226,6 +228,8 @@ FP.prototype = {
         }
 
         this.XES = 1;
+
+        return this;
     },
 
     /**
@@ -244,7 +248,8 @@ FP.prototype = {
      * @this {FP}
      */
     norm: function() {
-        return this.f.norm();
+        this.f.norm();
+        return this;
     },
 
     /**
@@ -330,8 +335,7 @@ FP.prototype = {
      * @this {FP}
      */
     neg: function() {
-        let m = new BIG(0);
-        m.rcopy(ROM_FIELD.Modulus);
+        let m = new BIG(0).rcopy(ROM_FIELD.Modulus);
 
         const sb = FP.logb2(this.XES - 1);
 
@@ -353,20 +357,13 @@ FP.prototype = {
      * @param b FP instance
      */
     sub: function(b) {
-        const n = new FP(0);
-        n.copy(b);
-        n.neg();
-        this.add(n);
-
-        return this;
+        const n = new FP(b).neg();
+        return this.add(n);
     },
 
     rsub: function(b) {
-        const n = new FP(0);
-        n.copy(this);
-        n.neg();
-        this.copy(b);
-        this.add(n);
+        const n = new FP(this).neg();
+        return this.copy(b).add(n);
     },
 
     /**

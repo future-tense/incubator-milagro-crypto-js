@@ -52,6 +52,7 @@ FP4.prototype = {
     reduce: function() {
         this.a.reduce();
         this.b.reduce();
+        return this;
     },
 
     /**
@@ -62,6 +63,7 @@ FP4.prototype = {
     norm: function() {
         this.a.norm();
         this.b.norm();
+        return this;
     },
 
     /**
@@ -150,6 +152,7 @@ FP4.prototype = {
     copy: function(x) {
         this.a.copy(x.a);
         this.b.copy(x.b);
+        return this;
     },
 
     /**
@@ -203,18 +206,11 @@ FP4.prototype = {
      */
     neg: function() {
         this.norm();
-
-        const m = new FP2(this.a);
-        m.add(this.b);
-        m.neg();
-
-        const t = new FP2(0);
-        t.copy(m);
-        t.add(this.b);
-        this.b.copy(m);
-        this.b.add(this.a);
+        const m = new FP2(this.a).add(this.b).neg();
+        const t = new FP2(m).add(this.b);
+        this.b.copy(m).add(this.a);
         this.a.copy(t);
-        this.norm();
+        return this.norm();
     },
 
     /**
@@ -224,7 +220,7 @@ FP4.prototype = {
      */
     conj: function() {
         this.b.neg();
-        this.norm();
+        return this.norm();
     },
 
     /**
@@ -234,7 +230,13 @@ FP4.prototype = {
      */
     nconj: function() {
         this.a.neg();
-        this.norm();
+        return this.norm();
+    },
+
+    dbl: function() {
+        this.a.add(this.a);
+        this.b.add(this.b);
+        return this;
     },
 
     /**
@@ -246,6 +248,7 @@ FP4.prototype = {
     add: function(x) {
         this.a.add(x.a);
         this.b.add(x.b);
+        return this;
     },
 
     /**
@@ -255,9 +258,9 @@ FP4.prototype = {
      * @param x FP4 instance
      */
     sub: function(x) {
-        const m = new FP4(x);
-        m.neg();
+        const m = new FP4(x).neg();
         this.add(m);
+        return this;
     },
 
     rsub: function(x) {
@@ -274,6 +277,7 @@ FP4.prototype = {
     pmul: function(s) {
         this.a.mul(s);
         this.b.mul(s);
+        return this;
     },
 
     /**
@@ -293,36 +297,16 @@ FP4.prototype = {
      * @this {FP4}
      */
     sqr: function() {
-        // this.norm();
+        const t1 = new FP2(this.a).add(this.b).norm();
+        const t2 = new FP2(this.b).mul_ip().add(this.a).norm();
+        const t3 = new FP2(this.a).mul(this.b);
 
-        const t1 = new FP2(this.a);
-        const t2 = new FP2(this.b);
-        const t3 = new FP2(this.a);
+        this.a.copy(t1).mul(t2);
+        t2.copy(t3).mul_ip().add(t3).norm();
 
-        t3.mul(this.b);
-        t1.add(this.b);
-        t1.norm();
-        t2.mul_ip();
-
-        t2.add(this.a);
-        t2.norm();
-        this.a.copy(t1);
-
-        this.a.mul(t2);
-
-        t2.copy(t3);
-        t2.mul_ip();
-        t2.add(t3);
-        t2.norm();  // ??
-
-        t2.neg();
-
-        this.a.add(t2);
-
-        this.b.copy(t3);
-        this.b.add(t3);
-
-        this.norm();
+        this.a.sub(t2);
+        this.b.copy(t3).add(t3);
+        return this.norm();
     },
 
     /**
@@ -332,38 +316,17 @@ FP4.prototype = {
      * @param y FP4 instance, the multiplier
      */
     mul: function(y) {
-        // this.norm();
-
-        const t1 = new FP2(this.a);
-        const t2 = new FP2(this.b);
-        const t3 = new FP2(0);
-        const t4 = new FP2(this.b);
-
-        t1.mul(y.a);
-        t2.mul(y.b);
-        t3.copy(y.b);
-        t3.add(y.a);
-        t4.add(this.a);
-
-        t3.norm();
-        t4.norm();
-
-        t4.mul(t3);
-
-        t3.copy(t1);
-        t3.neg();
-        t4.add(t3);
+        const t1 = new FP2(this.a).mul(y.a);
+        const t2 = new FP2(this.b).mul(y.b);
+        const t3 = new FP2(y.b).add(y.a).norm();
+        const t4 = new FP2(this.b).add(this.a).norm().mul(t3).sub(t1);
 
         t3.copy(t2);
-        t3.neg();
-        this.b.copy(t4);
-        this.b.add(t3);
-
         t2.mul_ip();
-        this.a.copy(t2);
-        this.a.add(t1);
 
-        this.norm();
+        this.a.copy(t2).add(t1);
+        this.b.copy(t4).sub(t3);
+        return this.norm();
     },
 
     /**
@@ -382,18 +345,11 @@ FP4.prototype = {
      */
     inverse: function() {
         this.norm();
-        const t1 = new FP2(this.a);
-        const t2 = new FP2(this.b);
-
-        t1.sqr();
-        t2.sqr();
-        t2.mul_ip();
-        t2.norm(); // ??
-        t1.sub(t2);
-        t1.inverse();
+        const t1 = new FP2(this.a).sqr();
+        const t2 = new FP2(this.b).sqr().mul_ip().norm();
+        t1.sub(t2).inverse();
         this.a.mul(t1);
-        t1.neg();
-        t1.norm();
+        t1.neg().norm();
         this.b.mul(t1);
     },
 
@@ -403,14 +359,11 @@ FP4.prototype = {
      * @this {FP4}
      */
     times_i: function() {
-        const s = new FP2(this.b);
-        const t = new FP2(this.b);
-
-        s.times_i();
-        t.add(s);
+        const s = new FP2(this.b).times_i();
+        const t = new FP2(this.b).add(s);
         this.b.copy(this.a);
         this.a.copy(t);
-        this.norm();
+        return this.norm();
     },
 
     /**
@@ -423,6 +376,7 @@ FP4.prototype = {
         this.a.conj();
         this.b.conj();
         this.b.mul(f);
+        return this;
     },
 
     /**
@@ -432,11 +386,8 @@ FP4.prototype = {
      * @param e BIG instance exponent
      */
     pow: function(e) {
-        const w = new FP4(this);
-        w.norm();
-
-        const z = new BIG(e);
-        z.norm();
+        const w = new FP4(this).norm();
+        const z = new BIG(e).norm();
 
         const r = new FP4(1);
         for (;;) {
@@ -453,9 +404,8 @@ FP4.prototype = {
 
             w.sqr();
         }
-        r.reduce();
 
-        return r;
+        return r.reduce();
     },
 
     /**
@@ -467,23 +417,9 @@ FP4.prototype = {
      * @param z FP4 instance
      */
     xtr_A: function(w, y, z) {
-        const r = new FP4(w);
-        const t = new FP4(w);
-
-        //y.norm(); // ??
-        r.sub(y);
-        r.norm();
-        r.pmul(this.a);
-        t.add(y);
-        t.norm();
-        t.pmul(this.b);
-        t.times_i();
-
-        this.copy(r);
-        this.add(t);
-        this.add(z);
-
-        this.reduce();
+        const r = new FP4(w).sub(y).norm().pmul(this.a);
+        const t = new FP4(w).add(y).norm().pmul(this.b).times_i();
+        return this.copy(r).add(t).add(z).reduce();
     },
 
     /**
@@ -492,12 +428,9 @@ FP4.prototype = {
      * @this {FP4}
      */
     xtr_D: function() {
-        const w = new FP4(this);
-        w.conj();
+        const w = new FP4(this).conj();
         w.add(w);
-        this.sqr();
-        this.sub(w);
-        this.reduce();
+        this.sqr().sub(w).reduce();
     },
 
     /**

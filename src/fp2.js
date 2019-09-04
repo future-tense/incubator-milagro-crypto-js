@@ -54,6 +54,7 @@ FP2.prototype = {
     reduce: function() {
         this.a.reduce();
         this.b.reduce();
+        return this;
     },
 
     /**
@@ -64,6 +65,7 @@ FP2.prototype = {
     norm: function() {
         this.a.norm();
         this.b.norm();
+        return this;
     },
 
     /**
@@ -187,6 +189,7 @@ FP2.prototype = {
     copy: function(x) {
         this.a.copy(x.a);
         this.b.copy(x.b);
+        return this;
     },
 
     /**
@@ -225,6 +228,7 @@ FP2.prototype = {
         this.b.copy(m);
         this.b.add(this.a);
         this.a.copy(t);
+        return this;
     },
 
     /**
@@ -246,6 +250,7 @@ FP2.prototype = {
     add: function(x) {
         this.a.add(x.a);
         this.b.add(x.b);
+        return this;
     },
 
     /**
@@ -255,9 +260,9 @@ FP2.prototype = {
      * @param x FP2 instance
      */
     sub: function(x) {
-        const m = new FP2(x);
-        m.neg();
+        const m = new FP2(x).neg();
         this.add(m);
+        return this;
     },
 
     rsub: function(x) {
@@ -274,6 +279,7 @@ FP2.prototype = {
     pmul: function(s) {
         this.a.mul(s);
         this.b.mul(s);
+        return this;
     },
 
     /**
@@ -285,6 +291,7 @@ FP2.prototype = {
     imul: function(c) {
         this.a.imul(c);
         this.b.imul(c);
+        return this;
     },
 
     /**
@@ -293,22 +300,12 @@ FP2.prototype = {
      * @this {FP2}
      */
     sqr: function() {
-        const w1 = new FP(this.a);
-        const w3 = new FP(this.a);
-        const mb = new FP(this.b);
-
-        w1.add(this.b);
-        w3.add(this.a);
-        w3.norm();
+        const w1 = new FP(this.a).add(this.b).norm();
+        const w3 = new FP(this.a).add(this.a).norm();
+        this.a.sub(this.b).norm().mul(w1);
         this.b.mul(w3);
 
-        mb.neg();
-        this.a.add(mb);
-
-        this.a.norm();
-        w1.norm();
-
-        this.a.mul(w1);
+        return this;
     },
 
     /**
@@ -318,11 +315,8 @@ FP2.prototype = {
      * @param y FP2 instance, the multiplier
      */
     mul: function(y) {
-        const p = new BIG(0);
-        p.rcopy(ROM_FIELD.Modulus);
-
-        const pR = new DBIG(0);
-        pR.ucopy(p);
+        const p = new BIG(0).rcopy(ROM_FIELD.Modulus);
+        const pR = new DBIG(0).ucopy(p);
 
         if ((this.a.XES + this.b.XES) * (y.a.XES + y.b.XES) > FP.FEXCESS) {
             if (this.a.XES > 1) {
@@ -334,32 +328,23 @@ FP2.prototype = {
             }
         }
 
+        const C = new BIG(this.a.f).add(this.b.f).norm();
+        const D = new BIG(y.a.f).add(y.b.f).norm();
+        const E = BIG.mul(C, D);
+
         const A = BIG.mul(this.a.f, y.a.f);
         const B = BIG.mul(this.b.f, y.b.f);
-
-        const C = new BIG(this.a.f);
-        const D = new BIG(y.a.f);
-
-        C.add(this.b.f);
-        C.norm();
-        D.add(y.b.f);
-        D.norm();
-
-        const E = BIG.mul(C, D);
-        const F = new DBIG(0);
-        F.copy(A);
-        F.add(B);
+        const F = new DBIG(0).copy(A).add(B);
         B.rsub(pR);
-
-        A.add(B);
-        A.norm();
-        E.sub(F);
-        E.norm();
+        A.add(B).norm();
+        E.sub(F).norm();
 
         this.a.f.copy(FP.mod(A));
         this.a.XES = 3;
         this.b.f.copy(FP.mod(E));
         this.b.XES = 2;
+
+        return this;
     },
 
     /**
@@ -374,35 +359,27 @@ FP2.prototype = {
             return true;
         }
 
-        let w1 = new FP(this.b);
-        let w2 = new FP(this.a);
-
-        w1.sqr();
-        w2.sqr();
-        w1.add(w2);
+        let w2 = new FP(this.a).sqr();
+        let w1 = new FP(this.b).sqr().add(w2);
         if (w1.jacobi() !== 1) {
             this.zero();
             return false;
         }
+
         w1 = w1.sqrt();
-        w2.copy(this.a);
-        w2.add(w1);
-        w2.norm();
-        w2.div2();
+        w2.copy(this.a).add(w1).norm().div2();
         if (w2.jacobi() !== 1) {
-            w2.copy(this.a);
-            w2.sub(w1);
-            w2.norm();
-            w2.div2();
+            w2.copy(this.a).sub(w1).norm().div2();
             if (w2.jacobi() !== 1) {
                 this.zero();
                 return false;
             }
         }
+
         w2 = w2.sqrt();
         this.a.copy(w2);
-        w2.add(w2);
-        w2.inverse();
+
+        w2.add(w2).inverse();
         this.b.mul(w2);
 
         return true;
@@ -423,18 +400,12 @@ FP2.prototype = {
      * @this {FP2}
      */
     inverse: function() {
-
         this.norm();
-        const w1 = new FP(this.a);
-        const w2 = new FP(this.b);
-
-        w1.sqr();
-        w2.sqr();
-        w1.add(w2);
-        w1.inverse();
+        const w2 = new FP(this.b).sqr();
+        const w1 = new FP(this.a).sqr().add(w2).inverse();
         this.a.mul(w1);
-        w1.neg();
-        w1.norm();
+
+        w1.neg().norm();
         this.b.mul(w1);
     },
 
@@ -455,9 +426,9 @@ FP2.prototype = {
      */
     times_i: function() {
         const z = new FP(this.a);
-        this.a.copy(this.b);
-        this.a.neg();
+        this.a.copy(this.b).neg();
         this.b.copy(z);
+        return this;
     },
 
     /**
@@ -468,11 +439,10 @@ FP2.prototype = {
     mul_ip: function() {
         const t = new FP2(this);
         const z = new FP(this.a);
-
-        this.a.copy(this.b);
-        this.a.neg();
+        this.a.copy(this.b).neg();
         this.b.copy(z);
         this.add(t);
+        return this;
     },
 
     /**
@@ -483,12 +453,9 @@ FP2.prototype = {
     div_ip2: function() {
         this.norm();
         const t = new FP2(0);
-        t.a.copy(this.a);
-        t.a.add(this.b);
-        t.b.copy(this.b);
-        t.b.sub(this.a);
-        this.copy(t);
-        this.norm();
+        t.a.copy(this.a).add(this.b);
+        t.b.copy(this.b).sub(this.a);
+        return this.copy(t).norm();
     },
 
     /**
@@ -535,8 +502,7 @@ FP2.prototype = {
             x.sqr();
         }
 
-        r.reduce();
-        return r;
+        return r.reduce();
     }
 };
 

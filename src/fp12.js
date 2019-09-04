@@ -41,22 +41,22 @@ const FP12 = function(d, e, f) {
         this.a = new FP4(d.a);
         this.b = new FP4(d.b);
         this.c = new FP4(d.c);
-        this.stype=FP.DENSE;
+        this.stype = FP.DENSE;
     } else if (typeof d !== "undefined" && typeof e !== "undefined" && typeof f !== "undefined") {
         // all 3 components set to (can be anything that the FP4 constructor supports)
         this.a = new FP4(d);
         this.b = new FP4(e);
         this.c = new FP4(f);
-        this.stype=FP.DENSE;
+        this.stype = FP.DENSE;
     } else if (typeof d === "number") {
         // first component is number
         this.a = new FP4(d);
         this.b = new FP4(0);
         this.c = new FP4(0);
         if (d === 1) {
-            this.stype=FP.ONE;
+            this.stype = FP.ONE;
         } else {
-            this.stype=FP.SPARSER;
+            this.stype = FP.SPARSER;
         }
     } else {
         // other cases, including `new FP12()` fall back to zero
@@ -78,6 +78,7 @@ FP12.prototype = {
         this.a.reduce();
         this.b.reduce();
         this.c.reduce();
+        return this;
     },
 
     /**
@@ -89,6 +90,7 @@ FP12.prototype = {
         this.a.norm();
         this.b.norm();
         this.c.norm();
+        return this;
     },
 
     /**
@@ -121,8 +123,8 @@ FP12.prototype = {
         this.a.cmove(g.a, d);
         this.b.cmove(g.b, d);
         this.c.cmove(g.c, d);
-        d=~(d-1);
-        this.stype^=(this.stype^g.stype)&d;
+        d = ~(d-1);
+        this.stype ^= (this.stype ^ g.stype) & d;
     },
 
     /**
@@ -205,7 +207,8 @@ FP12.prototype = {
         this.a.copy(x.a);
         this.b.copy(x.b);
         this.c.copy(x.c);
-        this.stype=x.stype;
+        this.stype = x.stype;
+        return this;
     },
 
     /**
@@ -218,7 +221,7 @@ FP12.prototype = {
         this.a.one();
         this.b.zero();
         this.c.zero();
-        this.stype=FP.ONE;
+        this.stype = FP.ONE;
     },
 
     /**
@@ -230,7 +233,7 @@ FP12.prototype = {
         this.a.zero();
         this.b.zero();
         this.c.zero();
-        this.stype=FP.ZERO;
+        this.stype = FP.ZERO;
     },
 
     /**
@@ -242,6 +245,7 @@ FP12.prototype = {
         this.a.conj();
         this.b.nconj();
         this.c.conj();
+        return this;
     },
 
     /**
@@ -256,7 +260,7 @@ FP12.prototype = {
         this.a.copy(d);
         this.b.copy(e);
         this.c.copy(f);
-        this.stype=FP.DENSE;
+        this.stype = FP.DENSE;
     },
 
     /**
@@ -269,7 +273,7 @@ FP12.prototype = {
         this.a.copy(d);
         this.b.zero();
         this.c.zero();
-        this.stype=FP.SPARSER;
+        this.stype = FP.SPARSER;
     },
 
     /**
@@ -278,41 +282,21 @@ FP12.prototype = {
      * @this {FP12}
      */
     usqr: function() {
-        const A = new FP4(this.a);
-        const B = new FP4(this.c);
-        const C = new FP4(this.b);
-        const D = new FP4(0);
+        const A = new FP4(this.a).nconj().dbl();
+        const B = new FP4(this.c).sqr().times_i();
+        const C = new FP4(this.b).sqr();
 
         this.a.sqr();
-        D.copy(this.a);
-        D.add(this.a);
-        this.a.add(D);
+        const D = new FP4(this.a).dbl();
+        this.a.add(D).add(A);       //  3*a^2 + A
 
-        A.nconj();
+        D.copy(B).dbl().add(B);     //  D = 3*B
+        A.copy(C).dbl().add(C);     //  A = 3*C
 
-        A.add(A);
-        this.a.add(A);
-        B.sqr();
-        B.times_i();
-
-        D.copy(B);
-        D.add(B);
-        B.add(D);
-
-        C.sqr();
-        D.copy(C);
-        D.add(C);
-        C.add(D);
-
-        this.b.conj();
-        this.b.add(this.b);
-        this.c.nconj();
-
-        this.c.add(this.c);
-        this.b.add(B);
-        this.c.add(C);
+        this.b.conj().dbl().add(D);
+        this.c.nconj().dbl().add(A);
         this.stype = FP.DENSE;
-        this.reduce();
+        return this.reduce();
     },
 
     /**
@@ -322,45 +306,33 @@ FP12.prototype = {
      */
     sqr: function() {
         if (this.stype === FP.ONE) {
-            return;
+            return this;
         }
 
-        const A = new FP4(this.a);
-        const B = new FP4(this.b);
-        const C = new FP4(this.c);
-        const D = new FP4(this.a);
+        const A = new FP4(this.a).sqr();
+        const B = new FP4(this.b).mul(this.c).dbl();
+        const C = new FP4(this.c).sqr();
+        const D = new FP4(this.a).mul(this.b).dbl();
 
-        A.sqr();
-        B.mul(this.c);
-        B.add(B); 
-        C.sqr();
-        D.mul(this.b);
-        D.add(D);
-
-        this.c.add(this.a);
-        this.c.add(this.b);
-        this.c.norm();
-        this.c.sqr();
+        this.c.add(this.a).add(this.b).norm().sqr();
 
         this.a.copy(A);
 
-        A.add(B);
-        A.add(C);
-        A.add(D);
-        A.neg();
+        A.add(B).add(C).add(D).neg();
         B.times_i();
         C.times_i();
 
         this.a.add(B);
-        this.b.copy(C);
-        this.b.add(D);
+        this.b.copy(C).add(D);
         this.c.add(A);
+
         if (this.stype === FP.SPARSER) {
             this.stype = FP.SPARSE;
         } else {
             this.stype = FP.DENSE;
         }
-        this.norm();
+
+        return this.norm();
     },
 
     /**
@@ -370,73 +342,42 @@ FP12.prototype = {
      * @param y FP12 instance, the multiplier
      */
     mul: function(y) {
-        const z0 = new FP4(this.a);
-        const z1 = new FP4(0);
-        const z2 = new FP4(this.b);
-        const z3 = new FP4(0);
-        const t0 = new FP4(this.a);
-        const t1 = new FP4(y.a);
+        const z0 = new FP4(this.a).mul(y.a);
+        const z2 = new FP4(this.b).mul(y.b);
 
-        z0.mul(y.a);
-        z2.mul(y.b);
+        const t0 = new FP4(this.a).add(this.b).norm();
+        const t1 = new FP4(y.a).add(y.b).norm();
 
-        t0.add(this.b);
-        t1.add(y.b);
+        const z1 = new FP4(t0).mul(t1);
+        t0.copy(this.b).add(this.c).norm();
+        t1.copy(y.b).add(y.c).norm();
 
-        t0.norm();
-        t1.norm();
-
-        z1.copy(t0);
-        z1.mul(t1);
-        t0.copy(this.b);
-        t0.add(this.c);
-
-        t1.copy(y.b);
-        t1.add(y.c);
-
-        t0.norm();
-        t1.norm();
-        z3.copy(t0);
-        z3.mul(t1);
-
-        t0.copy(z0);
-        t0.neg();
-        t1.copy(z2);
-        t1.neg();
+        const z3 = new FP4(t0).mul(t1);
+        t0.copy(z0).neg();
+        t1.copy(z2).neg();
 
         z1.add(t0);
-        this.b.copy(z1);
-        this.b.add(t1);
+        this.b.copy(z1).add(t1);
 
         z3.add(t1);
         z2.add(t0);
 
-        t0.copy(this.a);
-        t0.add(this.c);
-        t1.copy(y.a);
-        t1.add(y.c);
-
-        t0.norm();
-        t1.norm();
-
-        t0.mul(t1);
+        t1.copy(y.a).add(y.c).norm();
+        t0.copy(this.a).add(this.c).norm().mul(t1);
         z2.add(t0);
 
-        t0.copy(this.c);
-        t0.mul(y.c);
-        t1.copy(t0);
-        t1.neg();
+        t0.copy(this.c).mul(y.c);
+        t1.copy(t0).neg();
 
         this.c.copy(z2);
         this.c.add(t1);
         z3.add(t1);
         t0.times_i();
-        this.b.add(t0);
         z3.times_i();
-        this.a.copy(z0);
-        this.a.add(z3);
+        this.b.add(t0);
+        this.a.copy(z0).add(z3);
         this.stype = FP.DENSE;
-        this.norm();
+        return this.norm();
     },
 
     /* FP12 multiplication w=w*y */
@@ -450,54 +391,39 @@ FP12.prototype = {
      * @param y FP12 instance, the multiplier
      */
     smul: function(y) {
-        const w1=new FP2(this.a.geta());
-        const w2=new FP2(this.a.getb());
-        const w3=new FP2(this.b.geta());
+        const w1 = new FP2(this.a.geta()).mul(y.a.geta());
+        const w2 = new FP2(this.a.getb()).mul(y.a.getb());
+        const w3 = new FP2(this.b.geta()).mul(y.b.geta());
 
-        w1.mul(y.a.geta());
-        w2.mul(y.a.getb());
-        w3.mul(y.b.geta());
+        const ta = new FP2(this.a.geta()).add(this.a.getb()).norm();
+        const tb = new FP2(y.a.geta()).add(y.a.getb()).norm();
+        const t  = new FP2(w1).add(w2).neg();
+        const tc = new FP2(ta).mul(tb).add(t);
 
-        const ta=new FP2(this.a.geta());
-        const tb=new FP2(y.a.geta());
-        ta.add(this.a.getb()); ta.norm();
-        tb.add(y.a.getb()); tb.norm();
-        const tc=new FP2(ta);
-        tc.mul(tb);
-        const t=new FP2(w1);
-        t.add(w2);
-        t.neg();
-        tc.add(t);
+        ta.copy(this.a.geta()).add(this.b.geta()).norm();
+        tb.copy(y.a.geta()).add(y.b.geta()).norm();
+        t.copy(w1).add(w3).neg();
+        const td = new FP2(ta).mul(tb).add(t);
 
-        ta.copy(this.a.geta()); ta.add(this.b.geta()); ta.norm();
-        tb.copy(y.a.geta()); tb.add(y.b.geta()); tb.norm();
-        const td=new FP2(ta);
-        td.mul(tb);
-        t.copy(w1);
-        t.add(w3);
-        t.neg();
-        td.add(t);
-
-        ta.copy(this.a.getb()); ta.add(this.b.geta()); ta.norm();
-        tb.copy(y.a.getb()); tb.add(y.b.geta()); tb.norm();
-        const te=new FP2(ta);
-        te.mul(tb);
-        t.copy(w2);
-        t.add(w3);
-        t.neg();
-        te.add(t);
+        ta.copy(this.a.getb()).add(this.b.geta()).norm();
+        tb.copy(y.a.getb()).add(y.b.geta()).norm();
+        t.copy(w2).add(w3).neg();
+        const te = new FP2(ta).mul(tb).add(t);
 
         w2.mul_ip();
         w1.add(w2);
 
-        this.a.geta().copy(w1); this.a.getb().copy(tc);
-        this.b.geta().copy(td); this.b.getb().copy(te);
-        this.c.geta().copy(w3); this.c.getb().zero();
+        this.a.geta().copy(w1);
+        this.a.getb().copy(tc);
+        this.b.geta().copy(td);
+        this.b.getb().copy(te);
+        this.c.geta().copy(w3);
+        this.c.getb().zero();
 
         this.a.norm();
         this.b.norm();
 
-        this.stype=FP.SPARSE;
+        this.stype = FP.SPARSE;
     },
 
     /* FP12 full multiplication w=w*y */
@@ -520,64 +446,48 @@ FP12.prototype = {
         }
 
         if (y.stype >= FP.SPARSE) {
-            const z0=new FP4(this.a);
-            const z1=new FP4(0);
-            const z2=new FP4(0);
-            const z3=new FP4(0);
-            z0.mul(y.a);
-            z2.copy(this.b);
-            z2.mul(y.b);
-            const t0=new FP4(this.a);
-            const t1=new FP4(y.a);
-            t0.add(this.b); t0.norm();
-            t1.add(y.b); t1.norm();
+            const z0 = new FP4(this.a).mul(y.a);
+            const z2 = new FP4(this.b).mul(y.b);
+            const t0 = new FP4(this.a).add(this.b).norm();
+            const t1 = new FP4(y.a).add(y.b).norm();
+            const z1 = new FP4(t0).mul(t1);
 
-            z1.copy(t0); z1.mul(t1);
-            t0.copy(this.b); t0.add(this.c); t0.norm();
-            t1.copy(y.b); t1.add(y.c); t1.norm();
+            t0.copy(this.b).add(this.c).norm();
+            t1.copy(y.b).add(y.c).norm();
+            const z3 = new FP4(t0).mul(t1);
 
-            z3.copy(t0); z3.mul(t1);
-
-            t0.copy(z0); t0.neg();
-            t1.copy(z2); t1.neg();
-
-            z1.add(t0);
-            this.b.copy(z1); this.b.add(t1);
-
-            z3.add(t1);
+            t0.copy(z0).neg();
+            t1.copy(z2).neg();
+            z1.add(t0).add(t1);
             z2.add(t0);
+            z3.add(t1);
 
-            t0.copy(this.a); t0.add(this.c); t0.norm();
-            t1.copy(y.a); t1.add(y.c); t1.norm();
+            this.b.copy(z1);
 
-            t0.mul(t1);
+            t1.copy(y.a).add(y.c).norm();
+            t0.copy(this.a).add(this.c).norm().mul(t1);
             z2.add(t0);
 
             if (y.stype === FP.SPARSE || this.stype === FP.SPARSE) {
-                t0.geta().copy(this.c.geta());
-                t0.geta().mul(y.c.geta());
+                t0.geta().copy(this.c.geta()).mul(y.c.geta());
                 t0.getb().zero();
                 if (y.stype !== FP.SPARSE) {
-                    t0.getb().copy(this.c.geta());
-                    t0.getb().mul(y.c.getb());
+                    t0.getb().copy(this.c.geta()).mul(y.c.getb());
                 }
                 if (this.stype !== FP.SPARSE) {
-                    t0.getb().copy(this.c.getb());
-                    t0.getb().mul(y.c.geta());
+                    t0.getb().copy(this.c.getb()).mul(y.c.geta());
                 }
             } else {
-                t0.copy(this.c);
-                t0.mul(y.c);
+                t0.copy(this.c).mul(y.c);
             }
-            t1.copy(t0); t1.neg();
+            t1.copy(t0).neg();
 
-            this.c.copy(z2); this.c.add(t1);
-            z3.add(t1);
+            this.c.copy(z2).add(t1);
             t0.times_i();
             this.b.add(t0);
-            z3.norm();
-            z3.times_i();
-            this.a.copy(z0); this.a.add(z3);
+
+            z3.add(t1).norm().times_i();
+            this.a.copy(z0).add(z3);
         } else {
             if (this.stype === FP.SPARSER) {
                 this.smul(y);
@@ -585,42 +495,23 @@ FP12.prototype = {
             }
 
             // dense by sparser - 13m
-            const z0=new FP4(this.a);
-            const z2=new FP4(this.b);
-            const z3=new FP4(this.b);
-            const t0=new FP4(0);
-            const t1=new FP4(y.a);
-            z0.mul(y.a);
-            z2.pmul(y.b.real());
-            this.b.add(this.a);
+            const z0 = new FP4(this.a).mul(y.a);
+            const z2 = new FP4(this.b).pmul(y.b.real());
+            const z3 = new FP4(this.b).add(this.c).norm().pmul(y.b.real());
+
+            const t1 = new FP4(y.a);
             t1.real().add(y.b.real());
-
             t1.norm();
-            this.b.norm();
-            this.b.mul(t1);
-            z3.add(this.c);
-            z3.norm();
-            z3.pmul(y.b.real());
 
-            t0.copy(z0); t0.neg();
-            t1.copy(z2); t1.neg();
+            this.b.add(this.a).norm().mul(t1).sub(z0).sub(z2);
+            z3.sub(z2).norm().times_i().add(z0);
 
-            this.b.add(t0);
-
-            this.b.add(t1);
-            z3.add(t1);
-            z2.add(t0);
-
-            t0.copy(this.a); t0.add(this.c); t0.norm();
-            z3.norm();
-            t0.mul(y.a);
-            this.c.copy(z2); this.c.add(t0);
-
-            z3.times_i();
-            this.a.copy(z0); this.a.add(z3);
+            const t0 = new FP4(this.a).add(this.c).norm().mul(y.a);
+            this.a.copy(z3);
+            this.c.copy(z2).sub(z0).add(t0);
         }
 
-        this.stype=FP.DENSE;
+        this.stype = FP.DENSE;
         this.norm();
     },
 
@@ -672,7 +563,9 @@ FP12.prototype = {
         this.b.mul(f3);
         this.c.copy(f2);
         this.c.mul(f3);
-        this.stype=FP.DENSE;
+        this.stype = FP.DENSE;
+
+        return this;
     },
 
     /**
@@ -682,19 +575,16 @@ FP12.prototype = {
      * @param f Modulus
      */
     frob: function(f) {
-        const f2 = new FP2(f);
-        const f3 = new FP2(f);
-
-        f2.sqr();
-        f3.mul(f2);
+        const f2 = new FP2(f).sqr();
+        const f3 = new FP2(f).mul(f2);
 
         this.a.frob(f3);
-        this.b.frob(f3);
-        this.c.frob(f3);
+        this.b.frob(f3).pmul(f);
+        this.c.frob(f3).pmul(f2);
 
-        this.b.pmul(f);
-        this.c.pmul(f2);
         this.stype = FP.DENSE;
+
+        return this;
     },
 
     /**
@@ -703,13 +593,7 @@ FP12.prototype = {
      * @this {FP12}
      */
     trace: function() {
-        const t = new FP4(0);
-
-        t.copy(this.a);
-        t.imul(3);
-        t.reduce();
-
-        return t;
+        return new FP4(this.a).imul(3).reduce();
     },
 
     /**
@@ -788,17 +672,12 @@ FP12.prototype = {
      * @param e BIG instance exponent
      */
     pow: function(e) {
-        const e1 = new BIG(e);
-        e1.norm();
-        const e3 = new BIG(e1);
-        e3.pmul(3);
-        e3.norm();
-
-        const sf = new FP12(this);
-        sf.norm();
+        const e1 = new BIG(e).norm();
+        const e3 = new BIG(e1).imul(3).norm();
+        const sf = new FP12(this).norm();
         const w = new FP12(sf);
-        const nb = e3.nbits();
 
+        const nb = e3.nbits();
         for (let i = nb - 2; i >= 1; i--) {
             w.usqr();
             const bt = e3.bit(i) - e1.bit(i);
@@ -811,9 +690,8 @@ FP12.prototype = {
                 sf.conj();
             }
         }
-        w.reduce();
 
-        return w;
+        return w.reduce();
     },
 
     /**
@@ -846,28 +724,17 @@ FP12.prototype = {
      */
     compow: function(e, r) {
 
-        const fa = new BIG(0);
-        fa.rcopy(ROM_FIELD.Fra);
+        const fa = new BIG(0).rcopy(ROM_FIELD.Fra);
+        const fb = new BIG(0).rcopy(ROM_FIELD.Frb);
+        const f  = new FP2(fa, fb);
 
-        const fb = new BIG(0);
-        fb.rcopy(ROM_FIELD.Frb);
+        const q = new BIG(0).rcopy(ROM_FIELD.Modulus);
+        const m = new BIG(q).mod(r);
 
-        const f = new FP2(fa, fb);
+        const a = new BIG(e).mod(m);
+        const b = new BIG(e).div(m);
 
-        const q = new BIG(0);
-        q.rcopy(ROM_FIELD.Modulus);
-
-        const m = new BIG(q);
-        m.mod(r);
-
-        const a = new BIG(e);
-        a.mod(m);
-
-        const b = new BIG(e);
-        b.div(m);
-
-        const g1 = new FP12(0);
-        g1.copy(this);
+        const g1 = new FP12(this);
 
         let c = g1.trace();
         if (b.iszilch()) {
@@ -875,14 +742,15 @@ FP12.prototype = {
             return c;
         }
 
-        const g2 = new FP12(0);
-        g2.copy(g1);
-        g2.frob(f);
+        const g2 = new FP12(g1).frob(f);
+
         const cp = g2.trace();
         g1.conj();
         g2.mul(g1);
+
         const cpm1 = g2.trace();
         g2.mul(g1);
+
         const cpm2 = g2.trace();
 
         c = c.xtr_pow2(cp, cpm1, cpm2, a, b);
@@ -993,8 +861,7 @@ FP12.pow4 = function(q, u) {
 
     const t = [];
     for (let i = 0; i < 4; i++) {
-        t[i] = new BIG(u[i]);
-        t[i].norm();
+        t[i] = new BIG(u[i]).norm();
     }
 
     const g = [];
@@ -1009,12 +876,10 @@ FP12.pow4 = function(q, u) {
 
     // Make it odd
     const pb = 1 - t[0].parity();
-    t[0].inc(pb);
-    t[0].norm();
+    t[0].inc(pb).norm();
 
     // Number of bits
     const mt = new BIG(0);
-    mt.zero();
     for (let i = 0; i < 4; i++) {
         mt.or(t[i]);
     }
